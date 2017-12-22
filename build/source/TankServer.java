@@ -31,11 +31,18 @@ public class TankServer{
                 buffer.flip();
                 //System.out.println("Packet received");
                 //Limit the number of players to the max.
-                if (clients.size() < MAX_PLAYERS){
+                if (clients.size() < 1){
                     clients.add(currentAddress);
+                    //System.out.pr
                 }
+                else if (clients.size() < MAX_PLAYERS){
+                    if (clients.get(0) != currentAddress)
+                        clients.add(currentAddress);
+                }
+
                 for (SocketAddress addr : clients){
-                    if (addr != currentAddress){
+                    if (!addr.equals(currentAddress)){
+                        buffer.position(0);
                         d1.send(buffer, addr);
                         //System.out.println("Packet sent: " + addr);
                     }

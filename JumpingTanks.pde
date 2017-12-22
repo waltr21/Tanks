@@ -107,7 +107,7 @@ public void runThread(){
             ByteBuffer buffer = ByteBuffer.allocate(1024);
     		dc.receive(buffer);
             String message = new String(buffer.array());
-            System.out.println(message);
+            System.out.println("Got: " + message);
         }
     }
     catch(Exception e){
