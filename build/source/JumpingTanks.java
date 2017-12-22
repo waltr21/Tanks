@@ -76,11 +76,13 @@ public void draw(){
     //Show the arm and body of the tanks.
     showAndBoundBullets();
     enemy.showBody();
+    // player.resetTrans(enemy.getX(), enemy.getY());
+    // player.resetRotate(enemy.getAngle());
     player.showBody();
     player.showArm();
     //enemy.showBody();
 
-    String loc = player.getX() + "," + player.getY();
+    String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
 
     try{
         ByteBuffer buff = ByteBuffer.wrap(loc.getBytes());
@@ -137,6 +139,7 @@ public void runThread(){
             String[] coordinates = message.split(",");
             enemy.setX(Float.parseFloat(coordinates[0]));
             enemy.setY(Float.parseFloat(coordinates[1]));
+            enemy.setAngle(Float.parseFloat(coordinates[2]));
             //System.out.println(coordinates[0] + "-" + coordinates[1]);
         }
     }
@@ -206,7 +209,6 @@ public class Bullet{
         fill(0);
         ellipse(pos.x, pos.y, 10, 10);
         pos.add(velocity.x * 15, velocity.y * 15);
-
     }
 
 }
@@ -215,21 +217,48 @@ public class EnemyTank{
     private float y = -1000;
     private int bodyW = 120;
     private int bodyH = 30;
+    private int armW = 80;
+    private int armH = 8;
+    private float angle = 0;
     private PImage img = loadImage("tank1.png");
 
+    public void setAngle(float a){
+        angle = a;
+    }
 
     public void setX(float tempX){
         x = tempX;
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
+    }
+
+    public float getAngle(){
+        return angle;
     }
 
     public void setY(float tempY){
         y = tempY;
     }
 
+
     public void showBody(){
         rotate(0);
-        image(img, x-(bodyW/2), y, bodyW, bodyH);
+        pushMatrix();
+        translate(x+(bodyW/2), y);
+        image(img, -(bodyW/2), 0, bodyW, bodyH);
+
+        rotate(angle);
+        rect(0, -armH/2, armW, armH);
+        popMatrix();
     }
+
+
 }
 public class Tank{
     //X value for the take and rotations
@@ -306,6 +335,14 @@ public class Tank{
         count = 0;
     }
 
+    public void resetTrans(float tX, float tY){
+        translate(-tX, -tY);
+    }
+
+    public void resetRotate(float tempAng){
+        rotate(0);
+    }
+
     public void bound(){
         if (y + bodyH > height){
             y = height - bodyH;
@@ -322,6 +359,7 @@ public class Tank{
 
 
     public void showArm(){
+        rotate(0);
         translate(x,y);
         rotate(armAngle);
         fill (106, 108, 0);

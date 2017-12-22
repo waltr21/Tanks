@@ -25,7 +25,6 @@ public class Bullet{
         fill(0);
         ellipse(pos.x, pos.y, 10, 10);
         pos.add(velocity.x * 15, velocity.y * 15);
-
     }
 
 }

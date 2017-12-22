@@ -54,8 +54,8 @@ void draw(){
     //Show the arm and body of the tanks.
     showAndBoundBullets();
     enemy.showBody();
-    // player.resetTrans(enemy.getX(), enemy.getY());
-    // player.resetRotate(enemy.getAngle());
+    player.resetTrans(enemy.getX(), enemy.getY());
+    player.resetRotate(enemy.getAngle());
     player.showBody();
     player.showArm();
     //enemy.showBody();
