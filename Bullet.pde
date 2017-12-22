@@ -24,7 +24,7 @@ public class Bullet{
     public void travel(){
         fill(0);
         ellipse(pos.x, pos.y, 10, 10);
-        pos.add(velocity.x * 10, velocity.y * 10);
+        pos.add(velocity.x * 15, velocity.y * 15);
 
     }
 
