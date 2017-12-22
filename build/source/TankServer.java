@@ -28,7 +28,8 @@ public class TankServer{
             while(true){
                 ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                 SocketAddress currentAddress = d1.receive(buffer);
-                System.out.println("Packet received");
+                buffer.flip();
+                //System.out.println("Packet received");
                 //Limit the number of players to the max.
                 if (clients.size() < MAX_PLAYERS){
                     clients.add(currentAddress);
@@ -36,7 +37,7 @@ public class TankServer{
                 for (SocketAddress addr : clients){
                     if (addr != currentAddress){
                         d1.send(buffer, addr);
-                        System.out.println("Packet sent: " + addr);
+                        //System.out.println("Packet sent: " + addr);
                     }
                 }
             }

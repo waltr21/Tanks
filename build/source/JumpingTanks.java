@@ -26,7 +26,6 @@ public class JumpingTanks extends PApplet {
 
 
 
-
 Tank player;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 float recentAngle = 30;
@@ -34,11 +33,22 @@ int dir = 0;
 int gravity = 10;
 boolean holdingR, holdingL;
 DatagramChannel dc;
+String address = "127.0.0.1";
+int portNum = 8765;
+
+
 public void setup(){
     
-    //fullScreen();
     player = new Tank();
     frameRate(60);
+
+    //Open the channel.
+    try{
+        dc = DatagramChannel.open();
+    }
+    catch(Exception e){
+        System.out.println("Error in setup: " + e);
+    }
 
     //Create a thread for handling packets coming in.
     Thread myThread = new Thread(new Runnable() {
@@ -64,6 +74,17 @@ public void draw(){
     showAndBoundBullets();
     player.showBody();
     player.showArm();
+
+    String loc = player.getX() + "," + player.getY();
+
+    try{
+        ByteBuffer buff = ByteBuffer.wrap(loc.getBytes());
+        dc.send(buff, new InetSocketAddress(address, portNum));
+    }
+    catch(Exception e){
+        System.out.println("Error in draw: " + e);
+    }
+
 
 }
 
@@ -103,7 +124,7 @@ public float calculateArmAngle(){
 
 public void runThread(){
     try{
-        dc = DatagramChannel.open();
+        System.out.println("Thread created.");
         while (true){
             ByteBuffer buffer = ByteBuffer.allocate(1024);
     		dc.receive(buffer);
@@ -112,7 +133,7 @@ public void runThread(){
         }
     }
     catch(Exception e){
-
+        System.out.println("Exception in the tank thread: " +  e);
     }
 }
 
@@ -209,6 +230,14 @@ public class Tank{
         armAngle = a;
     }
 
+    public float getX(){
+        return x-(bodyW/2);
+    }
+
+    public float getY(){
+        return y;
+    }
+
     public float getArmX(){
         return x;
     }
@@ -261,6 +290,7 @@ public class Tank{
         if (x + bodyW/2 > width)
             x = width - bodyW/2;
     }
+
 
     public void showArm(){
         translate(x,y);

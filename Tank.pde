@@ -26,6 +26,14 @@ public class Tank{
         armAngle = a;
     }
 
+    public float getX(){
+        return x-(bodyW/2);
+    }
+
+    public float getY(){
+        return y;
+    }
+
     public float getArmX(){
         return x;
     }
@@ -78,6 +86,7 @@ public class Tank{
         if (x + bodyW/2 > width)
             x = width - bodyW/2;
     }
+
 
     public void showArm(){
         translate(x,y);
