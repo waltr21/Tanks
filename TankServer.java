@@ -2,10 +2,12 @@ import java.io.*;
 import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
+import java.util.ArrayList;
 
 public class TankServer{
     private int portNum, count;
     private final int MAX_PLAYERS = 2;
+    private final int BUFFER_SIZE = 1024;
     private DatagramChannel d1;
     private ArrayList<SocketAddress> clients;
 
@@ -24,7 +26,7 @@ public class TankServer{
             System.out.println("Server connected.");
 
             while(true){
-                ByteBuffer buffer = ByteBuffer.allocate(1024);
+                ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                 SocketAddress currentAddress = d1.receive(buffer);
                 System.out.println("Packet received");
                 //Limit the number of players to the max.

@@ -1,14 +1,30 @@
+import java.io.*;
+import java.net.*;
+import java.nio.*;
+import java.nio.channels.*;
+import java.util.ArrayList;
+
+
 Tank player;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
 boolean holdingR, holdingL;
+DatagramChannel dc;
 void setup(){
     size(800,800);
     //fullScreen();
     player = new Tank();
     frameRate(60);
+
+    //Create a thread for handling packets coming in.
+    Thread myThread = new Thread(new Runnable() {
+        public void run() {
+            runThread();
+        }
+    });
+    myThread.start();
 }
 
 void draw(){
@@ -61,6 +77,21 @@ public float calculateArmAngle(){
         newAngle += PI;
     }
     return newAngle;
+}
+
+public void runThread(){
+    try{
+        dc = DatagramChannel.open();
+        while (true){
+            ByteBuffer buffer = ByteBuffer.allocate(1024);
+    		dc.receive(buffer);
+            String message = new String(buffer.array());
+            System.out.println(message);
+        }
+    }
+    catch(Exception e){
+
+    }
 }
 
 void keyReleased(){
