@@ -27,6 +27,7 @@ public class JumpingTanks extends PApplet {
 
 
 Tank player;
+EnemyTank enemy;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 float recentAngle = 30;
 int dir = 0;
@@ -39,8 +40,10 @@ int portNum = 8765;
 
 public void setup(){
     
-    player = new Tank();
     frameRate(60);
+
+    player = new Tank();
+    enemy = new EnemyTank();
 
     //Open the channel.
     try{
@@ -70,10 +73,12 @@ public void draw(){
     recentAngle = calculateArmAngle();
     player.setAngle(recentAngle);
 
-    //Show the arm and body of the tank.
+    //Show the arm and body of the tanks.
     showAndBoundBullets();
+    enemy.showBody();
     player.showBody();
     player.showArm();
+    //enemy.showBody();
 
     String loc = player.getX() + "," + player.getY();
 
@@ -129,7 +134,10 @@ public void runThread(){
             ByteBuffer buffer = ByteBuffer.allocate(1024);
     		dc.receive(buffer);
             String message = new String(buffer.array());
-            System.out.println("Got: " + message);
+            String[] coordinates = message.split(",");
+            enemy.setX(Float.parseFloat(coordinates[0]));
+            enemy.setY(Float.parseFloat(coordinates[1]));
+            //System.out.println(coordinates[0] + "-" + coordinates[1]);
         }
     }
     catch(Exception e){
@@ -201,6 +209,27 @@ public class Bullet{
 
     }
 
+}
+public class EnemyTank{
+    private float x = -1000;
+    private float y = -1000;
+    private int bodyW = 120;
+    private int bodyH = 30;
+    private PImage img = loadImage("tank1.png");
+
+
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
+    public void showBody(){
+        rotate(0);
+        image(img, x-(bodyW/2), y, bodyW, bodyH);
+    }
 }
 public class Tank{
     //X value for the take and rotations

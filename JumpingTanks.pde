@@ -5,6 +5,7 @@ import java.nio.channels.*;
 import java.util.ArrayList;
 
 Tank player;
+EnemyTank enemy;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 float recentAngle = 30;
 int dir = 0;
@@ -17,8 +18,10 @@ int portNum = 8765;
 
 void setup(){
     size(800,800);
-    player = new Tank();
     frameRate(60);
+
+    player = new Tank();
+    enemy = new EnemyTank();
 
     //Open the channel.
     try{
@@ -48,10 +51,12 @@ void draw(){
     recentAngle = calculateArmAngle();
     player.setAngle(recentAngle);
 
-    //Show the arm and body of the tank.
+    //Show the arm and body of the tanks.
     showAndBoundBullets();
+    enemy.showBody();
     player.showBody();
     player.showArm();
+    //enemy.showBody();
 
     String loc = player.getX() + "," + player.getY();
 
@@ -107,7 +112,10 @@ public void runThread(){
             ByteBuffer buffer = ByteBuffer.allocate(1024);
     		dc.receive(buffer);
             String message = new String(buffer.array());
-            System.out.println("Got: " + message);
+            String[] coordinates = message.split(",");
+            enemy.setX(Float.parseFloat(coordinates[0]));
+            enemy.setY(Float.parseFloat(coordinates[1]));
+            //System.out.println(coordinates[0] + "-" + coordinates[1]);
         }
     }
     catch(Exception e){
