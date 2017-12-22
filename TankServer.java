@@ -4,12 +4,15 @@ import java.nio.*;
 import java.nio.channels.*;
 
 public class TankServer{
-    int portNum;
-    DatagramChannel d1;
-    int count;
+    private int portNum, count;
+    private final int MAX_PLAYERS = 2;
+    private DatagramChannel d1;
+    private ArrayList<SocketAddress> clients;
+
 
     public TankServer(int port){
         portNum = port;
+        clients = new ArrayList<>();
         count = 0;
         runServer();
     }
@@ -22,8 +25,18 @@ public class TankServer{
 
             while(true){
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
-                SocketAddress address = d1.receive(buffer);
+                SocketAddress currentAddress = d1.receive(buffer);
                 System.out.println("Packet received");
+                //Limit the number of players to the max.
+                if (clients.size() < MAX_PLAYERS){
+                    clients.add(currentAddress);
+                }
+                for (SocketAddress addr : clients){
+                    if (addr != currentAddress){
+                        d1.send(buffer, addr);
+                        System.out.println("Packet sent: " + addr);
+                    }
+                }
             }
 
         }
