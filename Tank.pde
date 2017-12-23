@@ -20,7 +20,9 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 10;
+    private int health = 3;
+
+    private long pastTime = 0;
 
     private PImage img = loadImage("tank1.png");
 
@@ -65,7 +67,11 @@ public class Tank{
     }
 
     public void takeHit(){
-        health--;
+        if (System.currentTimeMillis() - pastTime > 2000){
+            health--;
+            pastTime = System.currentTimeMillis();
+            System.out.println("HIT");
+        }
     }
 
     public void move(int dir){
