@@ -29,6 +29,7 @@ public class JumpingTanks extends PApplet {
 Tank player;
 EnemyTank enemy;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
+ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
@@ -44,6 +45,9 @@ public void setup(){
 
     player = new Tank();
     enemy = new EnemyTank();
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
 
     //Open the channel.
     try{
@@ -75,15 +79,16 @@ public void draw(){
 
     //Show the arm and body of the tanks.
     showAndBoundBullets();
+    showEnemyBullets();
     enemy.showBody();
-    // player.resetTrans(enemy.getX(), enemy.getY());
-    // player.resetRotate(enemy.getAngle());
     player.showBody();
     player.showArm();
-    //enemy.showBody();
 
+    //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
-
+    for (Bullet b : bullets){
+        loc += "," + b.getX() + "/" + b.getY();
+    }
     try{
         ByteBuffer buff = ByteBuffer.wrap(loc.getBytes());
         dc.send(buff, new InetSocketAddress(address, portNum));
@@ -91,8 +96,6 @@ public void draw(){
     catch(Exception e){
         System.out.println("Error in draw: " + e);
     }
-
-
 }
 
 public void showAndBoundBullets(){
@@ -111,11 +114,18 @@ public void showAndBoundBullets(){
     }
 }
 
+public void showEnemyBullets(){
+    for (EnemyBullet b : enemyBullets){
+        //System.out.println(b.getX() + "-" + b.getY());
+        b.showBullet();
+    }
+}
+
 public float calculateArmAngle(){
     //Make a right triangle with the mouse and tank pos.
     float opp = (mouseY - player.getArmY());
     float adj = (mouseX - player.getArmX());
-    //Handle divide m=by 0 errors.
+    //Handle divide by 0 errors.
     if (adj == 0)
         return recentAngle;
 
@@ -137,10 +147,32 @@ public void runThread(){
     		dc.receive(buffer);
             String message = new String(buffer.array());
             String[] coordinates = message.split(",");
+
+            /*
+             *[0] Tank X pos.
+             *[1] Tank Y pos.
+             *[2] Tank arm Angle pos.
+             *[3-X] Bullet X and Y pos.
+             */
+
             enemy.setX(Float.parseFloat(coordinates[0]));
             enemy.setY(Float.parseFloat(coordinates[1]));
             enemy.setAngle(Float.parseFloat(coordinates[2]));
-            //System.out.println(coordinates[0] + "-" + coordinates[1]);
+            int bulletCount = 0;
+
+            for (int i = 3; i < coordinates.length; i++){
+                String[] bulletCoor = coordinates[i].split("/");
+                float locX = Float.parseFloat(bulletCoor[0]);
+                float locY = Float.parseFloat(bulletCoor[1]);
+                enemyBullets.get(bulletCount).setX(locX);
+                enemyBullets.get(bulletCount).setY(locY);
+                bulletCount++;
+            }
+
+            for (int i = bulletCount; i < enemyBullets.size(); i++){
+                enemyBullets.get(i).setY(-1000);
+                enemyBullets.get(i).setX(-1000);
+            }
         }
     }
     catch(Exception e){
@@ -176,10 +208,12 @@ public void keyPressed(){
 
     //Add a bullet to the ArrayList when the player fires.
     if (key == ' '){
-        //Calculate the x and y coordinates of the bullet before
-        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
-        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
-        bullets.add(new Bullet(newX, newY, recentAngle));
+        if (bullets.size() < 3){
+            //Calculate the x and y coordinates of the bullet before
+            float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
+            float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
+            bullets.add(new Bullet(newX, newY, recentAngle));
+        }
     }
 }
 public class Bullet{
@@ -211,6 +245,36 @@ public class Bullet{
         pos.add(velocity.x * 15, velocity.y * 15);
     }
 
+}
+public class EnemyBullet{
+    private float x;
+    private float y;
+
+    public EnemyBullet(float conX, float conY){
+        x = conX;
+        y = conY;
+    }
+
+    public void setX(float newX){
+        x = newX;
+    }
+
+    public void setY(float newY){
+        y = newY;
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
+    }
+
+    public void showBullet(){
+        fill(0);
+        ellipse(x, y, 10, 10);
+    }
 }
 public class EnemyTank{
     private float x = -1000;
@@ -250,10 +314,16 @@ public class EnemyTank{
     public void showBody(){
         rotate(0);
         pushMatrix();
+        //translate according to the position of the tank arm.
         translate(x+(bodyW/2), y);
+
+        //Draw the body to the adjusted translate pos.
         image(img, -(bodyW/2), 0, bodyW, bodyH);
 
         rotate(angle);
+        fill (106, 108, 0);
+        //Draw the recentAngle slightly adjusted so it can
+        //rotate from its center point.
         rect(0, -armH/2, armW, armH);
         popMatrix();
     }
