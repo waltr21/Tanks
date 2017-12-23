@@ -83,6 +83,7 @@ public void draw(){
     enemy.showBody();
     player.showBody();
     player.showArm();
+    checkHit();
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
@@ -113,6 +114,19 @@ public void showAndBoundBullets(){
         }
     }
 }
+
+public void checkHit(){
+    for (EnemyBullet b : enemyBullets){
+        if (b.getX() > player.getX() && b.getX() < player.getX() + player.getTankW()){
+            if (b.getY() > player.getY() && b.getY() < player.getY() + player.getArmH()){
+                //System.out.println("HIT!");
+                player.takeHit();
+                break;
+            }
+        }
+    }
+}
+
 
 public void showEnemyBullets(){
     for (EnemyBullet b : enemyBullets){
@@ -351,6 +365,8 @@ public class Tank{
     private float velocity = 0;
     //Count to limit the jumps to one.
     private int count = 0;
+    //Health for the player.
+    private int health = 10;
 
     private PImage img = loadImage("tank1.png");
 
@@ -382,6 +398,22 @@ public class Tank{
         return armH;
     }
 
+    public int getHealth(){
+        return health;
+    }
+
+    public int getTankH(){
+        return bodyH;
+    }
+
+    public int getTankW(){
+        return bodyW;
+    }
+
+    public void takeHit(){
+        health--;
+    }
+
     public void move(int dir){
         x += dir;
     }
@@ -405,13 +437,7 @@ public class Tank{
         count = 0;
     }
 
-    public void resetTrans(float tX, float tY){
-        translate(-tX, -tY);
-    }
-
-    public void resetRotate(float tempAng){
-        rotate(0);
-    }
+    
 
     public void bound(){
         if (y + bodyH > height){
