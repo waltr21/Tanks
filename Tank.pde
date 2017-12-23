@@ -19,6 +19,8 @@ public class Tank{
     private float velocity = 0;
     //Count to limit the jumps to one.
     private int count = 0;
+    //Health for the player.
+    private int health = 10;
 
     private PImage img = loadImage("tank1.png");
 
@@ -48,6 +50,22 @@ public class Tank{
 
     public float getArmH(){
         return armH;
+    }
+
+    public int getHealth(){
+        return health;
+    }
+
+    public int getTankH(){
+        return bodyH;
+    }
+
+    public int getTankW(){
+        return bodyW;
+    }
+
+    public void takeHit(){
+        health--;
     }
 
     public void move(int dir){
