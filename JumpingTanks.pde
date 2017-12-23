@@ -61,6 +61,7 @@ void draw(){
     enemy.showBody();
     player.showBody();
     player.showArm();
+    checkHit();
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
