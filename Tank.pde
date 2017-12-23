@@ -26,6 +26,14 @@ public class Tank{
         armAngle = a;
     }
 
+    public float getX(){
+        return x-(bodyW/2);
+    }
+
+    public float getY(){
+        return y;
+    }
+
     public float getArmX(){
         return x;
     }
@@ -65,6 +73,14 @@ public class Tank{
         count = 0;
     }
 
+    public void resetTrans(float tX, float tY){
+        translate(-tX, -tY);
+    }
+
+    public void resetRotate(float tempAng){
+        rotate(0);
+    }
+
     public void bound(){
         if (y + bodyH > height){
             y = height - bodyH;
@@ -79,7 +95,9 @@ public class Tank{
             x = width - bodyW/2;
     }
 
+
     public void showArm(){
+        rotate(0);
         translate(x,y);
         rotate(armAngle);
         fill (106, 108, 0);
