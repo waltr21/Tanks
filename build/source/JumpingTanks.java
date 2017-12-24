@@ -29,6 +29,7 @@ public class JumpingTanks extends PApplet {
 Tank player;
 EnemyTank enemy;
 Platforms plats;
+HealthBar bar;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -48,6 +49,7 @@ public void setup(){
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
+    bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -81,6 +83,7 @@ public void draw(){
     player.setAngle(recentAngle);
 
     //Show the arm and body of the tanks.
+    bar.show();
     plats.showPlatforms();
     showAndBoundBullets();
     showEnemyBullets();
@@ -107,6 +110,7 @@ public void draw(){
 public void showAndBoundBullets(){
     for (int i = 0; i < bullets.size(); i++){
         boolean removed = false;
+        //Check to see if it has hit a platform.
         for (Platform p : plats.getPlats()){
             if (bullets.get(i).getX() > p.getX() && bullets.get(i).getX() < p.getX() + p.getW()){
                 if (bullets.get(i).getY() > p.getY() && bullets.get(i).getY() < p.getY() + p.getH()){
@@ -117,7 +121,6 @@ public void showAndBoundBullets(){
         if (removed){
             bullets.remove(i);
         }
-
         //Check to see if the bullet is out of bounds.
         else if (bullets.get(i).getY() > height || bullets.get(i).getY() < 0){
             bullets.remove(i);
@@ -125,14 +128,10 @@ public void showAndBoundBullets(){
         else if (bullets.get(i).getX() > width || bullets.get(i).getX() < 0){
             bullets.remove(i);
         }
+        //Travel if in bounds.
         else{
             bullets.get(i).travel();
         }
-        //Check to see if it has hit a platform.
-
-
-        //Travel if in bounds.
-
     }
 }
 
@@ -142,6 +141,7 @@ public void checkHit(){
             if (b.getY() > player.getY() && b.getY() < player.getY() + player.getArmH()){
                 //System.out.println("HIT!");
                 player.takeHit();
+                bar.decreaseSize();
                 break;
             }
         }
@@ -383,6 +383,29 @@ public class EnemyTank{
 
 
 }
+public class HealthBar{
+    private int size;
+    private int w;
+    private int incr;
+
+    public HealthBar(int h){
+        incr = 40;
+        size = h * incr;
+        w = 20;
+
+    }
+
+    public void decreaseSize(){
+        size -= incr;
+    }
+
+    public void show(){
+        pushMatrix();
+        fill(0,256,0);
+        rect(10, 10, size, w);
+        popMatrix();
+    }
+}
 public class Platforms{
     private ArrayList<Platform> plats = new ArrayList<Platform>();
 
@@ -465,7 +488,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 3;
+    private int health = 4;
 
     private long pastTime = 0;
 
@@ -524,7 +547,7 @@ public class Tank{
     }
 
     public void takeHit(){
-        if (System.currentTimeMillis() - pastTime > 2000){
+        if (System.currentTimeMillis() - pastTime > 1000){
             health--;
             pastTime = System.currentTimeMillis();
         }

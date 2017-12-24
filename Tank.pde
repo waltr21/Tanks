@@ -20,7 +20,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 3;
+    private int health = 4;
 
     private long pastTime = 0;
 
@@ -79,7 +79,7 @@ public class Tank{
     }
 
     public void takeHit(){
-        if (System.currentTimeMillis() - pastTime > 2000){
+        if (System.currentTimeMillis() - pastTime > 1000){
             health--;
             pastTime = System.currentTimeMillis();
         }

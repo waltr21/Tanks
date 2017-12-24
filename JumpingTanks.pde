@@ -7,6 +7,7 @@ import java.util.ArrayList;
 Tank player;
 EnemyTank enemy;
 Platforms plats;
+HealthBar bar;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -26,6 +27,7 @@ void setup(){
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
+    bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -59,6 +61,7 @@ void draw(){
     player.setAngle(recentAngle);
 
     //Show the arm and body of the tanks.
+    bar.show();
     plats.showPlatforms();
     showAndBoundBullets();
     showEnemyBullets();
@@ -85,6 +88,7 @@ void draw(){
 public void showAndBoundBullets(){
     for (int i = 0; i < bullets.size(); i++){
         boolean removed = false;
+        //Check to see if it has hit a platform.
         for (Platform p : plats.getPlats()){
             if (bullets.get(i).getX() > p.getX() && bullets.get(i).getX() < p.getX() + p.getW()){
                 if (bullets.get(i).getY() > p.getY() && bullets.get(i).getY() < p.getY() + p.getH()){
@@ -95,7 +99,6 @@ public void showAndBoundBullets(){
         if (removed){
             bullets.remove(i);
         }
-
         //Check to see if the bullet is out of bounds.
         else if (bullets.get(i).getY() > height || bullets.get(i).getY() < 0){
             bullets.remove(i);
@@ -103,14 +106,10 @@ public void showAndBoundBullets(){
         else if (bullets.get(i).getX() > width || bullets.get(i).getX() < 0){
             bullets.remove(i);
         }
+        //Travel if in bounds.
         else{
             bullets.get(i).travel();
         }
-        //Check to see if it has hit a platform.
-
-
-        //Travel if in bounds.
-
     }
 }
 
@@ -118,8 +117,9 @@ public void checkHit(){
     for (EnemyBullet b : enemyBullets){
         if (b.getX() > player.getX() && b.getX() < player.getX() + player.getTankW()){
             if (b.getY() > player.getY() && b.getY() < player.getY() + player.getArmH()){
-                //System.out.println("HIT!");
+                System.out.println("HIT!");
                 player.takeHit();
+                bar.decreaseSize();
                 break;
             }
         }
