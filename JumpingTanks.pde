@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 Tank player;
 EnemyTank enemy;
+Platforms plats;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -18,11 +19,13 @@ int portNum = 8765;
 
 
 void setup(){
-    size(800,800);
+    size(900,800);
     frameRate(60);
+    smooth();
 
     player = new Tank();
     enemy = new EnemyTank();
+    plats = new Platforms();
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -56,12 +59,14 @@ void draw(){
     player.setAngle(recentAngle);
 
     //Show the arm and body of the tanks.
+    plats.showPlatforms();
     showAndBoundBullets();
     showEnemyBullets();
     enemy.showBody();
     player.showBody();
     player.showArm();
     checkHit();
+    landPlats();
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
@@ -79,17 +84,33 @@ void draw(){
 
 public void showAndBoundBullets(){
     for (int i = 0; i < bullets.size(); i++){
+        boolean removed = false;
+        for (Platform p : plats.getPlats()){
+            if (bullets.get(i).getX() > p.getX() && bullets.get(i).getX() < p.getX() + p.getW()){
+                if (bullets.get(i).getY() > p.getY() && bullets.get(i).getY() < p.getY() + p.getH()){
+                    removed = true;
+                }
+            }
+        }
+        if (removed){
+            bullets.remove(i);
+        }
+
         //Check to see if the bullet is out of bounds.
-        if (bullets.get(i).getY() > height || bullets.get(i).getY() < 0){
+        else if (bullets.get(i).getY() > height || bullets.get(i).getY() < 0){
             bullets.remove(i);
         }
         else if (bullets.get(i).getX() > width || bullets.get(i).getX() < 0){
             bullets.remove(i);
         }
-        //Travel if in bounds.
         else{
             bullets.get(i).travel();
         }
+        //Check to see if it has hit a platform.
+
+
+        //Travel if in bounds.
+
     }
 }
 
@@ -105,10 +126,28 @@ public void checkHit(){
     }
 }
 
+public void landPlats(){
+    for (Platform p : plats.getPlats()){
+        //Temp floats for important points on the tank.
+        float playerCenter = player.getX() + player.getTankW()/2;
+        float playerTempY = player.getY() + player.getTankH();
+        //If we are traveling down.
+        if (player.getVelocity() > 0){
+            //Compare the Y values
+            if (playerTempY > p.getY() && playerTempY < p.getY() + p.getH()){
+                //Compare the X values.
+                if (playerCenter > p.getX() && playerCenter < p.getX() + p.getW()){
+                    player.resetVelocity();
+                    player.resetCount();
+                    player.setY(p.getY() - player.getTankH());
+                }
+            }
+        }
+    }
+}
 
 public void showEnemyBullets(){
     for (EnemyBullet b : enemyBullets){
-        //System.out.println(b.getX() + "-" + b.getY());
         b.showBullet();
     }
 }

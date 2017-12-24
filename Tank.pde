@@ -30,8 +30,20 @@ public class Tank{
         armAngle = a;
     }
 
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
     public float getX(){
         return x-(bodyW/2);
+    }
+
+    public float getVelocity(){
+        return velocity;
     }
 
     public float getY(){
@@ -70,7 +82,6 @@ public class Tank{
         if (System.currentTimeMillis() - pastTime > 2000){
             health--;
             pastTime = System.currentTimeMillis();
-            System.out.println("HIT");
         }
     }
 
@@ -88,7 +99,7 @@ public class Tank{
     }
 
     public void jump(){
-        if (count < 1)
+        if (count < 2)
             velocity -= 10;
         count++;
     }
@@ -107,7 +118,7 @@ public class Tank{
     public void bound(){
         if (y + bodyH > height){
             y = height - bodyH;
-            velocity = 0;
+            resetVelocity();
             resetCount();
         }
         if (y < 0)
@@ -118,6 +129,9 @@ public class Tank{
             x = width - bodyW/2;
     }
 
+    public void resetVelocity(){
+        velocity = 0;
+    }
 
     public void showArm(){
         displayDead();
