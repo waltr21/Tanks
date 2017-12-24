@@ -28,6 +28,7 @@ public class JumpingTanks extends PApplet {
 
 Tank player;
 EnemyTank enemy;
+Platforms plats;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -42,9 +43,11 @@ int portNum = 8765;
 public void setup(){
     
     frameRate(60);
+    
 
     player = new Tank();
     enemy = new EnemyTank();
+    plats = new Platforms();
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -78,12 +81,14 @@ public void draw(){
     player.setAngle(recentAngle);
 
     //Show the arm and body of the tanks.
+    plats.showPlatforms();
     showAndBoundBullets();
     showEnemyBullets();
     enemy.showBody();
     player.showBody();
     player.showArm();
     checkHit();
+    landPlats();
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
@@ -101,17 +106,33 @@ public void draw(){
 
 public void showAndBoundBullets(){
     for (int i = 0; i < bullets.size(); i++){
+        boolean removed = false;
+        for (Platform p : plats.getPlats()){
+            if (bullets.get(i).getX() > p.getX() && bullets.get(i).getX() < p.getX() + p.getW()){
+                if (bullets.get(i).getY() > p.getY() && bullets.get(i).getY() < p.getY() + p.getH()){
+                    removed = true;
+                }
+            }
+        }
+        if (removed){
+            bullets.remove(i);
+        }
+
         //Check to see if the bullet is out of bounds.
-        if (bullets.get(i).getY() > height || bullets.get(i).getY() < 0){
+        else if (bullets.get(i).getY() > height || bullets.get(i).getY() < 0){
             bullets.remove(i);
         }
         else if (bullets.get(i).getX() > width || bullets.get(i).getX() < 0){
             bullets.remove(i);
         }
-        //Travel if in bounds.
         else{
             bullets.get(i).travel();
         }
+        //Check to see if it has hit a platform.
+
+
+        //Travel if in bounds.
+
     }
 }
 
@@ -127,10 +148,28 @@ public void checkHit(){
     }
 }
 
+public void landPlats(){
+    for (Platform p : plats.getPlats()){
+        //Temp floats for important points on the tank.
+        float playerCenter = player.getX() + player.getTankW()/2;
+        float playerTempY = player.getY() + player.getTankH();
+        //If we are traveling down.
+        if (player.getVelocity() > 0){
+            //Compare the Y values
+            if (playerTempY > p.getY() && playerTempY < p.getY() + p.getH()){
+                //Compare the X values.
+                if (playerCenter > p.getX() && playerCenter < p.getX() + p.getW()){
+                    player.resetVelocity();
+                    player.resetCount();
+                    player.setY(p.getY() - player.getTankH());
+                }
+            }
+        }
+    }
+}
 
 public void showEnemyBullets(){
     for (EnemyBullet b : enemyBullets){
-        //System.out.println(b.getX() + "-" + b.getY());
         b.showBullet();
     }
 }
@@ -209,11 +248,11 @@ public void keyReleased(){
 public void keyPressed(){
     //Move the player left and right.
     if (keyCode == RIGHT || key == 'd' || key == 'D'){
-        dir = 2;
+        dir = 3;
         holdingR = true;
     }
     if (keyCode == LEFT || key == 'a' || key == 'A'){
-        dir = -2;
+        dir = -3;
         holdingL = true;
     }
     //Jump for the player.
@@ -344,6 +383,66 @@ public class EnemyTank{
 
 
 }
+public class Platforms{
+    private ArrayList<Platform> plats = new ArrayList<Platform>();
+
+    public ArrayList<Platform> getPlats(){
+        return plats;
+    }
+
+    public Platforms(){
+        int midHeight = 25;
+        int midWidth = 70;
+        plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight));
+        plats.add(new Platform(0, height/2 - 200, 200, 25));
+        plats.add(new Platform(0, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 - 200, 200, 25));
+
+
+    }
+
+    public void showPlatforms(){
+        for (Platform p : plats){
+            p.show();
+        }
+    }
+}
+
+class Platform{
+    private float x;
+    private float y;
+    private int w;
+    private int h;
+
+    public Platform(float tempX, float tempY, int tempW, int tempH){
+        x = tempX;
+        y = tempY;
+        w = tempW;
+        h = tempH;
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
+    }
+
+    public int getW(){
+        return w;
+    }
+
+    public int getH(){
+        return h;
+    }
+
+    public void show(){
+        fill(0);
+        rect(x, y, w, h);
+    }
+}
 public class Tank{
     //X value for the take and rotations
     private float x = width/2;
@@ -366,7 +465,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 10;
+    private int health = 3;
 
     private long pastTime = 0;
 
@@ -376,8 +475,20 @@ public class Tank{
         armAngle = a;
     }
 
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
     public float getX(){
         return x-(bodyW/2);
+    }
+
+    public float getVelocity(){
+        return velocity;
     }
 
     public float getY(){
@@ -416,7 +527,6 @@ public class Tank{
         if (System.currentTimeMillis() - pastTime > 2000){
             health--;
             pastTime = System.currentTimeMillis();
-            System.out.println("HIT");
         }
     }
 
@@ -434,7 +544,7 @@ public class Tank{
     }
 
     public void jump(){
-        if (count < 1)
+        if (count < 2)
             velocity -= 10;
         count++;
     }
@@ -453,7 +563,7 @@ public class Tank{
     public void bound(){
         if (y + bodyH > height){
             y = height - bodyH;
-            velocity = 0;
+            resetVelocity();
             resetCount();
         }
         if (y < 0)
@@ -464,6 +574,9 @@ public class Tank{
             x = width - bodyW/2;
     }
 
+    public void resetVelocity(){
+        velocity = 0;
+    }
 
     public void showArm(){
         displayDead();
@@ -480,7 +593,7 @@ public class Tank{
         image(img, x-(bodyW/2), y, bodyW, bodyH);
     }
 }
-    public void settings() {  size(800,800); }
+    public void settings() {  size(900,800);  smooth(); }
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "JumpingTanks" };
         if (passedArgs != null) {
