@@ -81,7 +81,7 @@ public class Tank{
     public boolean takeHit(){
         //System.out.println("HIT!");
 
-        if (System.currentTimeMillis() - pastTime > 1000){
+        if (System.currentTimeMillis() - pastTime > 200){
             health--;
             pastTime = System.currentTimeMillis();
             return true;

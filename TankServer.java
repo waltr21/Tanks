@@ -33,11 +33,13 @@ public class TankServer{
                 //Limit the number of players to the max.
                 if (clients.size() < 1){
                     clients.add(currentAddress);
-                    //System.out.pr
+                    System.out.println("Client added.");
                 }
                 else if (clients.size() < MAX_PLAYERS){
-                    if (clients.get(0) != currentAddress)
+                    if (clients.get(0) != (currentAddress)){
                         clients.add(currentAddress);
+                        System.out.println("Client added.");
+                    }
                 }
 
                 for (SocketAddress addr : clients){
