@@ -116,10 +116,10 @@ public void showAndBoundBullets(){
 public void checkHit(){
     for (EnemyBullet b : enemyBullets){
         if (b.getX() > player.getX() && b.getX() < player.getX() + player.getTankW()){
-            if (b.getY() > player.getY() && b.getY() < player.getY() + player.getArmH()){
-                System.out.println("HIT!");
-                player.takeHit();
-                bar.decreaseSize();
+            if (b.getY() > player.getY() && b.getY() < player.getY() + player.getTankH()){
+                //System.out.println("HIT!");
+                if (player.takeHit())
+                    bar.decreaseSize();
                 break;
             }
         }
