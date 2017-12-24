@@ -226,11 +226,11 @@ void keyReleased(){
 void keyPressed(){
     //Move the player left and right.
     if (keyCode == RIGHT || key == 'd' || key == 'D'){
-        dir = 2;
+        dir = 3;
         holdingR = true;
     }
     if (keyCode == LEFT || key == 'a' || key == 'A'){
-        dir = -2;
+        dir = -3;
         holdingL = true;
     }
     //Jump for the player.

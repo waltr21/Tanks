@@ -248,11 +248,11 @@ public void keyReleased(){
 public void keyPressed(){
     //Move the player left and right.
     if (keyCode == RIGHT || key == 'd' || key == 'D'){
-        dir = 2;
+        dir = 3;
         holdingR = true;
     }
     if (keyCode == LEFT || key == 'a' || key == 'A'){
-        dir = -2;
+        dir = -3;
         holdingL = true;
     }
     //Jump for the player.
@@ -392,9 +392,14 @@ public class Platforms{
 
     public Platforms(){
         int midHeight = 25;
-        int midWidth = 100;
+        int midWidth = 70;
         plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight));
-        plats.add(new Platform(0, height/2, 200, 25));
+        plats.add(new Platform(0, height/2 - 200, 200, 25));
+        plats.add(new Platform(0, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 - 200, 200, 25));
+
+
     }
 
     public void showPlatforms(){

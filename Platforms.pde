@@ -7,9 +7,14 @@ public class Platforms{
 
     public Platforms(){
         int midHeight = 25;
-        int midWidth = 100;
+        int midWidth = 70;
         plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight));
-        plats.add(new Platform(0, height/2, 200, 25));
+        plats.add(new Platform(0, height/2 - 200, 200, 25));
+        plats.add(new Platform(0, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 - 200, 200, 25));
+
+
     }
 
     public void showPlatforms(){
