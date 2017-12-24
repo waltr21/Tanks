@@ -138,10 +138,10 @@ public void showAndBoundBullets(){
 public void checkHit(){
     for (EnemyBullet b : enemyBullets){
         if (b.getX() > player.getX() && b.getX() < player.getX() + player.getTankW()){
-            if (b.getY() > player.getY() && b.getY() < player.getY() + player.getArmH()){
+            if (b.getY() > player.getY() && b.getY() < player.getY() + player.getTankH()){
                 //System.out.println("HIT!");
-                player.takeHit();
-                bar.decreaseSize();
+                if (player.takeHit())
+                    bar.decreaseSize();
                 break;
             }
         }
@@ -269,6 +269,15 @@ public void keyPressed(){
         }
     }
 }
+
+public void mouseClicked(){
+    if (bullets.size() < 3){
+        //Calculate the x and y coordinates of the bullet before
+        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
+        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
+        bullets.add(new Bullet(newX, newY, recentAngle));
+    }
+}
 public class Bullet{
     private float x;
     private float y;
@@ -389,7 +398,7 @@ public class HealthBar{
     private int incr;
 
     public HealthBar(int h){
-        incr = 40;
+        incr = 20;
         size = h * incr;
         w = 20;
 
@@ -397,6 +406,8 @@ public class HealthBar{
 
     public void decreaseSize(){
         size -= incr;
+        if (size < 0)
+            size = 0;
     }
 
     public void show(){
@@ -488,7 +499,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 4;
+    private int health = 10;
 
     private long pastTime = 0;
 
@@ -546,13 +557,15 @@ public class Tank{
         return bodyW;
     }
 
-    public void takeHit(){
-        System.out.println("HIT!");
+    public boolean takeHit(){
+        //System.out.println("HIT!");
 
-        if (System.currentTimeMillis() - pastTime > 1000){
+        if (System.currentTimeMillis() - pastTime > 200){
             health--;
             pastTime = System.currentTimeMillis();
+            return true;
         }
+        return false;
     }
 
     public void move(int dir){

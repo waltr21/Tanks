@@ -247,3 +247,12 @@ void keyPressed(){
         }
     }
 }
+
+void mouseClicked(){
+    if (bullets.size() < 3){
+        //Calculate the x and y coordinates of the bullet before
+        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
+        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
+        bullets.add(new Bullet(newX, newY, recentAngle));
+    }
+}
