@@ -631,7 +631,7 @@ public class Tank{
         image(img, x-(bodyW/2), y, bodyW, bodyH);
     }
 }
-    public void settings() {  size(900,800);  smooth(); }
+    public void settings() {  size(1100,800);  smooth(); }
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "JumpingTanks" };
         if (passedArgs != null) {

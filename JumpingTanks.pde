@@ -20,9 +20,10 @@ int portNum = 8765;
 
 
 void setup(){
-    size(900,800);
-    frameRate(60);
-    smooth();
+    size(1300,900, P2D);
+    //frameRate(60);
+    noSmooth();
+    noStroke();
 
     player = new Tank();
     enemy = new EnemyTank();
