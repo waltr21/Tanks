@@ -6,7 +6,7 @@ public class EnemyTank{
     private int armW = 80;
     private int armH = 8;
     private float angle = 0;
-    private PImage img = loadImage("tank1.png");
+    private PImage img = loadImage("tank2.png");
 
     public void setAngle(float a){
         angle = a;
@@ -43,7 +43,7 @@ public class EnemyTank{
         image(img, -(bodyW/2), 0, bodyW, bodyH);
 
         rotate(angle);
-        fill (106, 108, 0);
+        fill (119, 8, 0);
         //Draw the recentAngle slightly adjusted so it can
         //rotate from its center point.
         rect(0, -armH/2, armW, armH);
