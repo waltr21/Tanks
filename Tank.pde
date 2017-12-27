@@ -41,13 +41,13 @@ public class Tank{
     public float getX(){
         return x-(bodyW/2);
     }
+    
+    public float getY(){
+        return y;
+    }
 
     public float getVelocity(){
         return velocity;
-    }
-
-    public float getY(){
-        return y;
     }
 
     public float getArmX(){

@@ -19,7 +19,7 @@ public class HealthBar{
     public void show(){
         pushMatrix();
         //if (size/incr > 100)
-        fill(0,256,0);
+        fill(0,200,0);
         rect(10, 10, size, w);
         popMatrix();
     }

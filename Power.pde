@@ -24,12 +24,20 @@ public class Power{
         return y;
     }
 
+    public int getType(){
+        return type;
+    }
+
     public float getSize(){
         return size;
     }
 
     public void setColor(color tempC){
         c = tempC;
+    }
+
+    public void setType(int t){
+        type = t;
     }
 
     public void show(){
@@ -49,10 +57,16 @@ public class Power{
     }
 }
 
-class PowerSpeed extends Power{
-    public PowerSpeed(Platform mid){
+class PowerShot extends Power{
+    public PowerShot(Platform mid){
         super(mid);
+        color speedColor = color(200, 0, 0);
+        super.setColor(speedColor);
+        super.setType(0);
     }
 
+    public void usePower(){
+
+    }
 
 }

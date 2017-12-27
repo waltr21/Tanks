@@ -30,7 +30,7 @@ Tank player;
 EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
-PowerSpeed ps;
+ArrayList<Power> ps;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -50,7 +50,8 @@ public void setup(){
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
-    ps = new PowerSpeed(plats.getPlats().get(0));
+    ps = new ArrayList<Power>();
+    ps.add(new PowerShot(plats.getPlats().get(0)));
     bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -87,7 +88,7 @@ public void draw(){
     //Show the arm and body of the tanks.
     bar.show();
     plats.showPlatforms();
-    ps.show();
+    showPower();
     showAndBoundBullets();
     showEnemyBullets();
     enemy.showBody();
@@ -95,6 +96,7 @@ public void draw(){
     player.showArm();
     checkHit();
     landPlats();
+    hitPower();
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
@@ -145,6 +147,24 @@ public void checkHit(){
                 //System.out.println("HIT!");
                 if (player.takeHit())
                     bar.decreaseSize();
+                break;
+            }
+        }
+    }
+}
+
+public void showPower(){
+    for (Power p : ps){
+        p.show();
+    }
+}
+
+public void hitPower(){
+    for (int i = 0; i < ps.size(); i++){
+        Power p = ps.get(i);
+        if (p.getX() > player.getX() && p.getX() < player.getX() + player.getTankW()){
+            if (p.getY() > player.getY() && p.getY() < player.getY() + player.getTankH()){
+                ps.remove(i);
                 break;
             }
         }
@@ -416,14 +436,13 @@ public class HealthBar{
     public void show(){
         pushMatrix();
         //if (size/incr > 100)
-        fill(0,256,0);
+        fill(0,200,0);
         rect(10, 10, size, w);
         popMatrix();
     }
 }
 public class Platforms{
     private ArrayList<Platform> plats = new ArrayList<Platform>();
-    private boolean right;
 
     public ArrayList<Platform> getPlats(){
         return plats;
@@ -432,26 +451,14 @@ public class Platforms{
     public Platforms(){
         int midHeight = 25;
         int midWidth = 70;
-        right = true;
-        plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight));
-        plats.add(new Platform(0, height/2 - 200, 200, 25));
-        plats.add(new Platform(0, height/2 + 200, 200, 25));
-        plats.add(new Platform(width - 200, height/2 + 200, 200, 25));
-        plats.add(new Platform(width - 200, height/2 - 200, 200, 25));
-
-
+        plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight, true));
+        plats.add(new Platform(0, height/2 - 200, 200, 25, false));
+        plats.add(new Platform(0, height/2 + 200, 200, 25, false));
+        plats.add(new Platform(width - 200, height/2 + 200, 200, 25, false));
+        plats.add(new Platform(width - 200, height/2 - 200, 200, 25, false));
     }
 
     public void showPlatforms(){
-
-        if (right)
-            plats.get(0).setX(plats.get(0).getX() + 2);
-
-        else
-            plats.get(0).setX(plats.get(0).getX() - 2);
-
-        if (plats.get(0).getX() < 0 || plats.get(0).getX() + plats.get(0).getW() > width)
-            right = !right;
         for (Platform p : plats){
             p.show();
         }
@@ -459,16 +466,18 @@ public class Platforms{
 }
 
 class Platform{
-    private float x;
-    private float y;
-    private int w;
-    private int h;
+    private float x, y;
+    private int w, h, speed;
+    private boolean moving, right;
 
-    public Platform(float tempX, float tempY, int tempW, int tempH){
+    public Platform(float tempX, float tempY, int tempW, int tempH, boolean move){
         x = tempX;
         y = tempY;
         w = tempW;
         h = tempH;
+        moving = move;
+        right = true;
+        speed = 2;
     }
 
     public float getX(){
@@ -492,8 +501,18 @@ class Platform{
     }
 
     public void show(){
+        pushMatrix();
         fill(0);
+        if (moving){
+            if (right)
+                x += speed;
+            else
+                x -= speed;
+            if (x < 0 || x + w > width)
+                right = !right;
+        }
         rect(x, y, w, h);
+        popMatrix();
     }
 }
 public class Power{
@@ -522,12 +541,20 @@ public class Power{
         return y;
     }
 
+    public int getType(){
+        return type;
+    }
+
     public float getSize(){
         return size;
     }
 
     public void setColor(int tempC){
         c = tempC;
+    }
+
+    public void setType(int t){
+        type = t;
     }
 
     public void show(){
@@ -547,11 +574,17 @@ public class Power{
     }
 }
 
-class PowerSpeed extends Power{
-    public PowerSpeed(Platform mid){
+class PowerShot extends Power{
+    public PowerShot(Platform mid){
         super(mid);
+        int speedColor = color(200, 0, 0);
+        super.setColor(speedColor);
+        super.setType(0);
     }
 
+    public void usePower(){
+
+    }
 
 }
 public class Tank{
@@ -597,13 +630,13 @@ public class Tank{
     public float getX(){
         return x-(bodyW/2);
     }
+    
+    public float getY(){
+        return y;
+    }
 
     public float getVelocity(){
         return velocity;
-    }
-
-    public float getY(){
-        return y;
     }
 
     public float getArmX(){

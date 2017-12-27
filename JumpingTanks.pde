@@ -8,7 +8,7 @@ Tank player;
 EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
-PowerSpeed ps;
+ArrayList<Power> ps;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -28,7 +28,8 @@ void setup(){
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
-    ps = new PowerSpeed(plats.getPlats().get(0));
+    ps = new ArrayList<Power>();
+    ps.add(new PowerShot(plats.getPlats().get(0)));
     bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -65,7 +66,7 @@ void draw(){
     //Show the arm and body of the tanks.
     bar.show();
     plats.showPlatforms();
-    ps.show();
+    showPower();
     showAndBoundBullets();
     showEnemyBullets();
     enemy.showBody();
@@ -73,6 +74,7 @@ void draw(){
     player.showArm();
     checkHit();
     landPlats();
+    hitPower();
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
@@ -123,6 +125,24 @@ public void checkHit(){
                 //System.out.println("HIT!");
                 if (player.takeHit())
                     bar.decreaseSize();
+                break;
+            }
+        }
+    }
+}
+
+public void showPower(){
+    for (Power p : ps){
+        p.show();
+    }
+}
+
+public void hitPower(){
+    for (int i = 0; i < ps.size(); i++){
+        Power p = ps.get(i);
+        if (p.getX() > player.getX() && p.getX() < player.getX() + player.getTankW()){
+            if (p.getY() > player.getY() && p.getY() < player.getY() + player.getTankH()){
+                ps.remove(i);
                 break;
             }
         }
