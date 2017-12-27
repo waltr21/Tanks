@@ -8,6 +8,7 @@ Tank player;
 EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
+PowerSpeed ps;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -23,11 +24,11 @@ void setup(){
     size(1300,900, P2D);
     //frameRate(60);
     noSmooth();
-    noStroke();
 
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
+    ps = new PowerSpeed(plats.getPlats().get(0));
     bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -64,6 +65,7 @@ void draw(){
     //Show the arm and body of the tanks.
     bar.show();
     plats.showPlatforms();
+    ps.show();
     showAndBoundBullets();
     showEnemyBullets();
     enemy.showBody();

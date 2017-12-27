@@ -30,6 +30,7 @@ Tank player;
 EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
+PowerSpeed ps;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -43,12 +44,13 @@ int portNum = 8765;
 
 public void setup(){
     
-    frameRate(60);
+    //frameRate(60);
     
 
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
+    ps = new PowerSpeed(plats.getPlats().get(0));
     bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
@@ -85,6 +87,7 @@ public void draw(){
     //Show the arm and body of the tanks.
     bar.show();
     plats.showPlatforms();
+    ps.show();
     showAndBoundBullets();
     showEnemyBullets();
     enemy.showBody();
@@ -412,6 +415,7 @@ public class HealthBar{
 
     public void show(){
         pushMatrix();
+        //if (size/incr > 100)
         fill(0,256,0);
         rect(10, 10, size, w);
         popMatrix();
@@ -419,6 +423,7 @@ public class HealthBar{
 }
 public class Platforms{
     private ArrayList<Platform> plats = new ArrayList<Platform>();
+    private boolean right;
 
     public ArrayList<Platform> getPlats(){
         return plats;
@@ -427,6 +432,7 @@ public class Platforms{
     public Platforms(){
         int midHeight = 25;
         int midWidth = 70;
+        right = true;
         plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight));
         plats.add(new Platform(0, height/2 - 200, 200, 25));
         plats.add(new Platform(0, height/2 + 200, 200, 25));
@@ -437,6 +443,15 @@ public class Platforms{
     }
 
     public void showPlatforms(){
+
+        if (right)
+            plats.get(0).setX(plats.get(0).getX() + 2);
+
+        else
+            plats.get(0).setX(plats.get(0).getX() - 2);
+
+        if (plats.get(0).getX() < 0 || plats.get(0).getX() + plats.get(0).getW() > width)
+            right = !right;
         for (Platform p : plats){
             p.show();
         }
@@ -472,10 +487,72 @@ class Platform{
         return h;
     }
 
+    public void setX(float tempX){
+        x = tempX;
+    }
+
     public void show(){
         fill(0);
         rect(x, y, w, h);
     }
+}
+public class Power{
+    private float x;
+    private float y;
+    private int type;
+    private float size;
+    private boolean increase;
+    private int c;
+    private Platform midPlat;
+
+    public Power(Platform mid){
+        midPlat = mid;
+        increase = true;
+        size = 20;
+        c = color(200, 0, 0);
+        x = midPlat.getX() + (midPlat.getW()/2);
+        y = midPlat.getY() - (midPlat.getH());
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
+    }
+
+    public float getSize(){
+        return size;
+    }
+
+    public void setColor(int tempC){
+        c = tempC;
+    }
+
+    public void show(){
+        pushMatrix();
+        x = midPlat.getX() + (midPlat.getW()/2);
+        y = midPlat.getY() - (midPlat.getH());
+        if (increase)
+            size += 0.3f;
+        else
+            size -= 0.3f;
+        if (size > 40 || size < 20)
+            increase = !increase;
+
+        fill(c);
+        ellipse(x, y, size, size);
+        popMatrix();
+    }
+}
+
+class PowerSpeed extends Power{
+    public PowerSpeed(Platform mid){
+        super(mid);
+    }
+
+
 }
 public class Tank{
     //X value for the take and rotations
@@ -631,7 +708,7 @@ public class Tank{
         image(img, x-(bodyW/2), y, bodyW, bodyH);
     }
 }
-    public void settings() {  size(1100,800);  smooth(); }
+    public void settings() {  size(1300,900, P2D);  noSmooth(); }
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "JumpingTanks" };
         if (passedArgs != null) {
