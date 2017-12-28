@@ -31,7 +31,7 @@ void setup(){
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
-    power = new PowerHealth(plats.getPlats().get(0), player, bar);
+    power = new PowerShot(plats.getPlats().get(0), player, bar);
 
     //Open the channel.
     try{
@@ -140,6 +140,8 @@ public void hitPower(){
             if (power.getY() > player.getY() && power.getY() < player.getY() + player.getTankH()){
                 if (power.getType() == 0)
                     power.usePower();
+                else
+                    player.givePower(power);
                 power = null;
             }
         }
@@ -265,6 +267,10 @@ void keyPressed(){
             float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
             bullets.add(new Bullet(newX, newY, recentAngle));
         }
+    }
+
+    if (keyCode == ENTER){
+        player.usePower();
     }
 }
 

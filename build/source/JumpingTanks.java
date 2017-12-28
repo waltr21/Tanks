@@ -53,7 +53,7 @@ public void setup(){
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
-    power = new PowerHealth(plats.getPlats().get(0), player, bar);
+    power = new PowerShot(plats.getPlats().get(0), player, bar);
 
     //Open the channel.
     try{
@@ -162,6 +162,8 @@ public void hitPower(){
             if (power.getY() > player.getY() && power.getY() < player.getY() + player.getTankH()){
                 if (power.getType() == 0)
                     power.usePower();
+                else
+                    player.givePower(power);
                 power = null;
             }
         }
@@ -287,6 +289,10 @@ public void keyPressed(){
             float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
             bullets.add(new Bullet(newX, newY, recentAngle));
         }
+    }
+
+    if (keyCode == ENTER){
+        player.usePower();
     }
 }
 
@@ -600,8 +606,8 @@ public class Power{
 class PowerHealth extends Power{
     public PowerHealth(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        int speedColor = color(200, 0, 0);
-        super.setColor(speedColor);
+        int healthColor = color(200, 0, 0);
+        super.setColor(healthColor);
         super.setType(0);
     }
 
@@ -609,6 +615,19 @@ class PowerHealth extends Power{
         int tempHealth = super.getTank().getHealth() + 3;
         super.getTank().setHealth(tempHealth);
         super.getBar().increaseSize(3);
+    }
+}
+
+class PowerShot extends Power{
+    public PowerShot(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        int shotColor = color(255, 145, 12);
+        super.setColor(shotColor);
+        super.setType(1);
+    }
+
+    public void usePower(){
+        System.out.println("Power used");
     }
 }
 public class Tank{
@@ -634,10 +653,12 @@ public class Tank{
     private int count = 0;
     //Health for the player.
     private int health = 10;
-
+    //Time slot to make sure one bullet can't do more than one hit.
     private long pastTime = 0;
-
+    //Image for the tank to draw.
     private PImage img = loadImage("tank1.png");
+    //List to hold the power ups.
+    private ArrayList<Power> powerUps = new ArrayList<Power>();
 
     public void setAngle(float a){
         armAngle = a;
@@ -695,13 +716,20 @@ public class Tank{
         health = tempHealth;
         if (health > 10)
             health = 10;
-        System.out.println("Health set: " + health);
+    }
 
+    public void givePower(Power pUp){
+        powerUps.add(pUp);
+    }
+
+    public void usePower(){
+        if (powerUps.size() > 0){
+            powerUps.get(0).usePower();
+            powerUps.remove(0);
+        }
     }
 
     public boolean takeHit(){
-        //System.out.println("HIT!");
-
         if (System.currentTimeMillis() - pastTime > 200){
             health--;
             pastTime = System.currentTimeMillis();

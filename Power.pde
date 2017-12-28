@@ -78,8 +78,8 @@ public class Power{
 class PowerHealth extends Power{
     public PowerHealth(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        color speedColor = color(200, 0, 0);
-        super.setColor(speedColor);
+        color healthColor = color(200, 0, 0);
+        super.setColor(healthColor);
         super.setType(0);
     }
 
@@ -87,5 +87,18 @@ class PowerHealth extends Power{
         int tempHealth = super.getTank().getHealth() + 3;
         super.getTank().setHealth(tempHealth);
         super.getBar().increaseSize(3);
+    }
+}
+
+class PowerShot extends Power{
+    public PowerShot(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        color shotColor = color(255, 145, 12);
+        super.setColor(shotColor);
+        super.setType(1);
+    }
+
+    public void usePower(){
+        System.out.println("Power used");
     }
 }
