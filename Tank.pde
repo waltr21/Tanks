@@ -25,6 +25,8 @@ public class Tank{
     private long pastTime = 0;
     //Image for the tank to draw.
     private PImage img = loadImage("tank1.png");
+    //
+    private boolean speed = false;
     //List to hold the power ups.
     private ArrayList<Power> powerUps = new ArrayList<Power>();
 
@@ -78,6 +80,14 @@ public class Tank{
 
     public int getTankW(){
         return bodyW;
+    }
+
+    public boolean isFastBullet(){
+        return speed;
+    }
+
+    public void setFastBullet(boolean b){
+        speed = b;
     }
 
     public void setHealth(int tempHealth){

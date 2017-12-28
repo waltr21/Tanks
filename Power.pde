@@ -99,6 +99,7 @@ class PowerShot extends Power{
     }
 
     public void usePower(){
-        System.out.println("Power used");
+        //System.out.println("Power used");
+        super.getTank().setFastBullet(true);
     }
 }

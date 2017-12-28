@@ -18,6 +18,7 @@ boolean holdingR, holdingL;
 DatagramChannel dc;
 String address = "127.0.0.1";
 int portNum = 8765;
+int speedCount = 0;
 
 
 void setup(){
@@ -61,7 +62,7 @@ void draw(){
     recentAngle = calculateArmAngle();
     player.setAngle(recentAngle);
 
-    //Show the arm and body of the tanks.
+    //Show the graphics
     bar.show();
     plats.showPlatforms();
     showPower();
@@ -262,13 +263,23 @@ void keyPressed(){
     //Add a bullet to the ArrayList when the player fires.
     if (key == ' '){
         if (bullets.size() < 3){
+            if (speedCount >= 5){
+                speedCount = 0;
+                player.setFastBullet(false);
+            }
+            if (player.isFastBullet())
+                speedCount++;
+
             //Calculate the x and y coordinates of the bullet before
-            float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
-            float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
-            bullets.add(new Bullet(newX, newY, recentAngle));
+            float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
+            float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
+
+            if (player.isFastBullet())
+                bullets.add(new Bullet(newX, newY, recentAngle, true));
+            else
+                bullets.add(new Bullet(newX, newY, recentAngle, false));
         }
     }
-
     if (keyCode == ENTER){
         player.usePower();
     }
@@ -277,8 +288,11 @@ void keyPressed(){
 void mouseClicked(){
     if (bullets.size() < 3){
         //Calculate the x and y coordinates of the bullet before
-        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
-        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
-        bullets.add(new Bullet(newX, newY, recentAngle));
+        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
+        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
+        if (player.isFastBullet())
+            bullets.add(new Bullet(newX, newY, recentAngle, true));
+        else
+            bullets.add(new Bullet(newX, newY, recentAngle, false));
     }
 }
