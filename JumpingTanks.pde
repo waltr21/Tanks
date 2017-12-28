@@ -8,7 +8,7 @@ Tank player;
 EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
-ArrayList<Power> ps;
+Power power;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -22,18 +22,16 @@ int portNum = 8765;
 
 void setup(){
     size(1300,900, P2D);
-    //frameRate(60);
     noSmooth();
 
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
-    ps = new ArrayList<Power>();
-    ps.add(new PowerShot(plats.getPlats().get(0)));
     bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
+    power = new PowerHealth(plats.getPlats().get(0), player, bar);
 
     //Open the channel.
     try{
@@ -132,18 +130,17 @@ public void checkHit(){
 }
 
 public void showPower(){
-    for (Power p : ps){
-        p.show();
-    }
+    if (power != null)
+        power.show();
 }
 
 public void hitPower(){
-    for (int i = 0; i < ps.size(); i++){
-        Power p = ps.get(i);
-        if (p.getX() > player.getX() && p.getX() < player.getX() + player.getTankW()){
-            if (p.getY() > player.getY() && p.getY() < player.getY() + player.getTankH()){
-                ps.remove(i);
-                break;
+    if (power != null){
+        if (power.getX() > player.getX() && power.getX() < player.getX() + player.getTankW()){
+            if (power.getY() > player.getY() && power.getY() < player.getY() + player.getTankH()){
+                if (power.getType() == 0)
+                    power.usePower();
+                power = null;
             }
         }
     }

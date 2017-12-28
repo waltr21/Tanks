@@ -41,7 +41,7 @@ public class Tank{
     public float getX(){
         return x-(bodyW/2);
     }
-    
+
     public float getY(){
         return y;
     }
@@ -76,6 +76,14 @@ public class Tank{
 
     public int getTankW(){
         return bodyW;
+    }
+
+    public void setHealth(int tempHealth){
+        health = tempHealth;
+        if (health > 10)
+            health = 10;
+        System.out.println("Health set: " + health);
+
     }
 
     public boolean takeHit(){

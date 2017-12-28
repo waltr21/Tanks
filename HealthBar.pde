@@ -2,10 +2,12 @@ public class HealthBar{
     private int size;
     private int w;
     private int incr;
+    private int MAX_SIZE;
 
     public HealthBar(int h){
         incr = 20;
         size = h * incr;
+        MAX_SIZE = h * incr;
         w = 20;
 
     }
@@ -14,6 +16,12 @@ public class HealthBar{
         size -= incr;
         if (size < 0)
             size = 0;
+    }
+
+    public void increaseSize(int times){
+        size += incr * times;
+        if (size > MAX_SIZE)
+                size = MAX_SIZE;
     }
 
     public void show(){

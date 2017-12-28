@@ -30,7 +30,7 @@ Tank player;
 EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
-ArrayList<Power> ps;
+Power power;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
@@ -44,18 +44,16 @@ int portNum = 8765;
 
 public void setup(){
     
-    //frameRate(60);
     
 
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
-    ps = new ArrayList<Power>();
-    ps.add(new PowerShot(plats.getPlats().get(0)));
     bar = new HealthBar(player.getHealth());
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
+    power = new PowerHealth(plats.getPlats().get(0), player, bar);
 
     //Open the channel.
     try{
@@ -154,18 +152,17 @@ public void checkHit(){
 }
 
 public void showPower(){
-    for (Power p : ps){
-        p.show();
-    }
+    if (power != null)
+        power.show();
 }
 
 public void hitPower(){
-    for (int i = 0; i < ps.size(); i++){
-        Power p = ps.get(i);
-        if (p.getX() > player.getX() && p.getX() < player.getX() + player.getTankW()){
-            if (p.getY() > player.getY() && p.getY() < player.getY() + player.getTankH()){
-                ps.remove(i);
-                break;
+    if (power != null){
+        if (power.getX() > player.getX() && power.getX() < player.getX() + player.getTankW()){
+            if (power.getY() > player.getY() && power.getY() < player.getY() + player.getTankH()){
+                if (power.getType() == 0)
+                    power.usePower();
+                power = null;
             }
         }
     }
@@ -419,10 +416,12 @@ public class HealthBar{
     private int size;
     private int w;
     private int incr;
+    private int MAX_SIZE;
 
     public HealthBar(int h){
         incr = 20;
         size = h * incr;
+        MAX_SIZE = h * incr;
         w = 20;
 
     }
@@ -431,6 +430,12 @@ public class HealthBar{
         size -= incr;
         if (size < 0)
             size = 0;
+    }
+
+    public void increaseSize(int times){
+        size += incr * times;
+        if (size > MAX_SIZE)
+                size = MAX_SIZE;
     }
 
     public void show(){
@@ -523,9 +528,15 @@ public class Power{
     private boolean increase;
     private int c;
     private Platform midPlat;
+    private Tank p;
+    private HealthBar h;
+    private Bullet b;
 
-    public Power(Platform mid){
+    public Power(Platform mid, Tank p, HealthBar h){
         midPlat = mid;
+        this.p = p;
+        this.h = h;
+        this.b = b;
         increase = true;
         size = 20;
         c = color(200, 0, 0);
@@ -545,16 +556,28 @@ public class Power{
         return type;
     }
 
-    public float getSize(){
+    private float getSize(){
         return size;
     }
 
-    public void setColor(int tempC){
+    private Tank getTank(){
+        return p;
+    }
+
+    private HealthBar getBar(){
+        return h;
+    }
+
+    private void setColor(int tempC){
         c = tempC;
     }
 
-    public void setType(int t){
+    private void setType(int t){
         type = t;
+    }
+
+    public void usePower(){
+
     }
 
     public void show(){
@@ -574,18 +597,19 @@ public class Power{
     }
 }
 
-class PowerShot extends Power{
-    public PowerShot(Platform mid){
-        super(mid);
+class PowerHealth extends Power{
+    public PowerHealth(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
         int speedColor = color(200, 0, 0);
         super.setColor(speedColor);
         super.setType(0);
     }
 
     public void usePower(){
-
+        int tempHealth = super.getTank().getHealth() + 3;
+        super.getTank().setHealth(tempHealth);
+        super.getBar().increaseSize(3);
     }
-
 }
 public class Tank{
     //X value for the take and rotations
@@ -630,7 +654,7 @@ public class Tank{
     public float getX(){
         return x-(bodyW/2);
     }
-    
+
     public float getY(){
         return y;
     }
@@ -665,6 +689,14 @@ public class Tank{
 
     public int getTankW(){
         return bodyW;
+    }
+
+    public void setHealth(int tempHealth){
+        health = tempHealth;
+        if (health > 10)
+            health = 10;
+        System.out.println("Health set: " + health);
+
     }
 
     public boolean takeHit(){

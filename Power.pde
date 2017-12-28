@@ -6,9 +6,15 @@ public class Power{
     private boolean increase;
     private color c;
     private Platform midPlat;
+    private Tank p;
+    private HealthBar h;
+    private Bullet b;
 
-    public Power(Platform mid){
+    public Power(Platform mid, Tank p, HealthBar h){
         midPlat = mid;
+        this.p = p;
+        this.h = h;
+        this.b = b;
         increase = true;
         size = 20;
         c = color(200, 0, 0);
@@ -28,16 +34,28 @@ public class Power{
         return type;
     }
 
-    public float getSize(){
+    private float getSize(){
         return size;
     }
 
-    public void setColor(color tempC){
+    private Tank getTank(){
+        return p;
+    }
+
+    private HealthBar getBar(){
+        return h;
+    }
+
+    private void setColor(color tempC){
         c = tempC;
     }
 
-    public void setType(int t){
+    private void setType(int t){
         type = t;
+    }
+
+    public void usePower(){
+
     }
 
     public void show(){
@@ -57,16 +75,17 @@ public class Power{
     }
 }
 
-class PowerShot extends Power{
-    public PowerShot(Platform mid){
-        super(mid);
+class PowerHealth extends Power{
+    public PowerHealth(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
         color speedColor = color(200, 0, 0);
         super.setColor(speedColor);
         super.setType(0);
     }
 
     public void usePower(){
-
+        int tempHealth = super.getTank().getHealth() + 3;
+        super.getTank().setHealth(tempHealth);
+        super.getBar().increaseSize(3);
     }
-
 }
