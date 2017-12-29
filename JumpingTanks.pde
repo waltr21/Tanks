@@ -33,7 +33,8 @@ void setup(){
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
-    power = new PowerShot(plats.getPlats().get(0), player, bar);
+    power = null;
+    //power = new PowerShot(plats.getPlats().get(0), player, bar);
 
     //Open the channel.
     try{
@@ -162,6 +163,17 @@ public void hitPower(){
     }
 }
 
+public void setPower(int type){
+    if (type == 0)
+        power = new PowerHealth(plats.getPlats().get(0), player, bar);
+    else if (type == 1)
+        power = new PowerShot(plats.getPlats().get(0), player, bar);
+    else
+        System.out.println("Inavlid type");
+
+
+}
+
 public void landPlats(){
     for (Platform p : plats.getPlats()){
         //Temp floats for important points on the tank.
@@ -222,6 +234,9 @@ public void runThread(){
             }
             else if (coordinates[0].equals("0")){
                 power = null;
+            }
+            else if(coordinates[0].equals("1")){
+                setPower(Integer.parseInt(coordinates[1]));
             }
             else{
 
