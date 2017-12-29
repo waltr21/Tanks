@@ -13,8 +13,6 @@ public class Platforms{
         plats.add(new Platform(0, height/2 + 200, 200, 25));
         plats.add(new Platform(width - 200, height/2 + 200, 200, 25));
         plats.add(new Platform(width - 200, height/2 - 200, 200, 25));
-
-
     }
 
     public void showPlatforms(){
@@ -25,16 +23,18 @@ public class Platforms{
 }
 
 class Platform{
-    private float x;
-    private float y;
-    private int w;
-    private int h;
+    private float x, y;
+    private int w, h, speed;
+    private boolean moving, right;
 
     public Platform(float tempX, float tempY, int tempW, int tempH){
         x = tempX;
         y = tempY;
         w = tempW;
         h = tempH;
+        moving = false;
+        right = true;
+        speed = 2;
     }
 
     public float getX(){
@@ -43,6 +43,18 @@ class Platform{
 
     public float getY(){
         return y;
+    }
+
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
+    public void setMove(boolean m){
+        moving = m;
     }
 
     public int getW(){
@@ -54,7 +66,17 @@ class Platform{
     }
 
     public void show(){
+        pushMatrix();
         fill(0);
+        if (moving){
+            if (right)
+                x += speed;
+            else
+                x -= speed;
+            if (x < 0 || x + w > width)
+                right = !right;
+        }
         rect(x, y, w, h);
+        popMatrix();
     }
 }

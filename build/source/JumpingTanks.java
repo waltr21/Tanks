@@ -30,20 +30,22 @@ Tank player;
 EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
+Power power;
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
 boolean holdingR, holdingL;
+boolean firstClient = false;
 DatagramChannel dc;
 String address = "127.0.0.1";
 int portNum = 8765;
+int speedCount = 0;
 
 
 public void setup(){
     
-    frameRate(60);
     
 
     player = new Tank();
@@ -53,6 +55,8 @@ public void setup(){
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
     enemyBullets.add(new EnemyBullet(-1000, -1000));
+    power = null;
+    //power = new PowerShot(plats.getPlats().get(0), player, bar);
 
     //Open the channel.
     try{
@@ -82,9 +86,10 @@ public void draw(){
     recentAngle = calculateArmAngle();
     player.setAngle(recentAngle);
 
-    //Show the arm and body of the tanks.
+    //Show the graphics
     bar.show();
     plats.showPlatforms();
+    showPower();
     showAndBoundBullets();
     showEnemyBullets();
     enemy.showBody();
@@ -92,9 +97,15 @@ public void draw(){
     player.showArm();
     checkHit();
     landPlats();
+    hitPower();
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
+    //If we are the first client we handle the position of the platform.
+    if (firstClient)
+        loc += "," + plats.getPlats().get(0).getX() + "," + plats.getPlats().get(0).getY();
+    else
+        loc += "," + "F" + "," + "F";
     for (Bullet b : bullets){
         loc += "," + b.getX() + "/" + b.getY();
     }
@@ -148,6 +159,43 @@ public void checkHit(){
     }
 }
 
+public void showPower(){
+    if (power != null)
+        power.show();
+}
+
+public void hitPower(){
+    if (power != null){
+        if (power.getX() > player.getX() && power.getX() < player.getX() + player.getTankW()){
+            if (power.getY() > player.getY() && power.getY() < player.getY() + player.getTankH()){
+                if (power.getType() == 0)
+                    power.usePower();
+                else
+                    player.givePower(power);
+                try{
+                    ByteBuffer powerBuff = ByteBuffer.wrap("0".getBytes());
+                    dc.send(powerBuff, new InetSocketAddress(address, portNum));
+                }
+                catch(Exception e){
+                    System.out.println("Exception in hitPower: " + e);
+                }
+                power = null;
+            }
+        }
+    }
+}
+
+public void setPower(int type){
+    if (type == 0)
+        power = new PowerHealth(plats.getPlats().get(0), player, bar);
+    else if (type == 1)
+        power = new PowerShot(plats.getPlats().get(0), player, bar);
+    else
+        System.out.println("Inavlid type");
+
+
+}
+
 public void landPlats(){
     for (Platform p : plats.getPlats()){
         //Temp floats for important points on the tank.
@@ -199,32 +247,54 @@ public void runThread(){
             ByteBuffer buffer = ByteBuffer.allocate(1024);
     		dc.receive(buffer);
             String message = new String(buffer.array());
+            message = message.trim();
             String[] coordinates = message.split(",");
 
-            /*
-             *[0] Tank X pos.
-             *[1] Tank Y pos.
-             *[2] Tank arm Angle pos.
-             *[3-X] Bullet X and Y pos.
-             */
-
-            enemy.setX(Float.parseFloat(coordinates[0]));
-            enemy.setY(Float.parseFloat(coordinates[1]));
-            enemy.setAngle(Float.parseFloat(coordinates[2]));
-            int bulletCount = 0;
-
-            for (int i = 3; i < coordinates.length; i++){
-                String[] bulletCoor = coordinates[i].split("/");
-                float locX = Float.parseFloat(bulletCoor[0]);
-                float locY = Float.parseFloat(bulletCoor[1]);
-                enemyBullets.get(bulletCount).setX(locX);
-                enemyBullets.get(bulletCount).setY(locY);
-                bulletCount++;
+            if (coordinates[0].equals("F")){
+                firstClient = true;
+                plats.getPlats().get(0).setMove(true);
             }
+            else if (coordinates[0].equals("0")){
+                power = null;
+            }
+            else if(coordinates[0].equals("1")){
+                setPower(Integer.parseInt(coordinates[1]));
+            }
+            else{
 
-            for (int i = bulletCount; i < enemyBullets.size(); i++){
-                enemyBullets.get(i).setY(-1000);
-                enemyBullets.get(i).setX(-1000);
+                /*
+                 *[0] Tank X pos.
+                 *[1] Tank Y pos.
+                 *[2] Tank arm Angle pos.
+                 *[3] Plat X pos
+                 *[4] Plat Y pos
+                 *[5-X] Bullet X and Y pos.
+                 */
+
+                enemy.setX(Float.parseFloat(coordinates[0]));
+                enemy.setY(Float.parseFloat(coordinates[1]));
+                enemy.setAngle(Float.parseFloat(coordinates[2]));
+
+                if (!firstClient){
+                    plats.getPlats().get(0).setX(Float.parseFloat(coordinates[3]));
+                    plats.getPlats().get(0).setY(Float.parseFloat(coordinates[4]));
+                }
+
+                int bulletCount = 0;
+                for (int i = 5; i < coordinates.length; i++){
+                    String[] bulletCoor = coordinates[i].split("/");
+                    float locX = Float.parseFloat(bulletCoor[0]);
+                    float locY = Float.parseFloat(bulletCoor[1]);
+                    enemyBullets.get(bulletCount).setX(locX);
+                    enemyBullets.get(bulletCount).setY(locY);
+                    bulletCount++;
+                }
+
+                for (int i = bulletCount; i < enemyBullets.size(); i++){
+                    enemyBullets.get(i).setY(-1000);
+                    enemyBullets.get(i).setX(-1000);
+                }
+
             }
         }
     }
@@ -262,20 +332,37 @@ public void keyPressed(){
     //Add a bullet to the ArrayList when the player fires.
     if (key == ' '){
         if (bullets.size() < 3){
+            if (speedCount >= 5){
+                speedCount = 0;
+                player.setFastBullet(false);
+            }
+            if (player.isFastBullet())
+                speedCount++;
+
             //Calculate the x and y coordinates of the bullet before
-            float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
-            float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
-            bullets.add(new Bullet(newX, newY, recentAngle));
+            float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
+            float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
+
+            if (player.isFastBullet())
+                bullets.add(new Bullet(newX, newY, recentAngle, true));
+            else
+                bullets.add(new Bullet(newX, newY, recentAngle, false));
         }
+    }
+    if (keyCode == ENTER){
+        player.usePower();
     }
 }
 
 public void mouseClicked(){
     if (bullets.size() < 3){
         //Calculate the x and y coordinates of the bullet before
-        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();;
-        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();;
-        bullets.add(new Bullet(newX, newY, recentAngle));
+        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
+        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
+        if (player.isFastBullet())
+            bullets.add(new Bullet(newX, newY, recentAngle, true));
+        else
+            bullets.add(new Bullet(newX, newY, recentAngle, false));
     }
 }
 public class Bullet{
@@ -284,11 +371,18 @@ public class Bullet{
     private float angle;
     private PVector pos;
     private PVector velocity;
+    private int speed;
+    private boolean fast;
 
-    public Bullet(float x, float y, float angle){
+    public Bullet(float x, float y, float angle, boolean s){
         this.x = x;
         this.y = y;
         this.angle = angle;
+        fast = s;
+        if (s)
+            speed = 30;
+        else
+            speed = 15;
         pos = new PVector(x,y);
         velocity = PVector.fromAngle(angle);
     }
@@ -302,9 +396,14 @@ public class Bullet{
     }
 
     public void travel(){
-        fill(0);
+        pushMatrix();
+        if(fast)
+            fill(214, 123, 12);
+        else
+            fill(0);
         ellipse(pos.x, pos.y, 10, 10);
-        pos.add(velocity.x * 15, velocity.y * 15);
+        pos.add(velocity.x * speed, velocity.y * speed);
+        popMatrix();
     }
 
 }
@@ -396,10 +495,12 @@ public class HealthBar{
     private int size;
     private int w;
     private int incr;
+    private int MAX_SIZE;
 
     public HealthBar(int h){
         incr = 20;
         size = h * incr;
+        MAX_SIZE = h * incr;
         w = 20;
 
     }
@@ -410,9 +511,16 @@ public class HealthBar{
             size = 0;
     }
 
+    public void increaseSize(int times){
+        size += incr * times;
+        if (size > MAX_SIZE)
+                size = MAX_SIZE;
+    }
+
     public void show(){
         pushMatrix();
-        fill(0,256,0);
+        //if (size/incr > 100)
+        fill(0,200,0);
         rect(10, 10, size, w);
         popMatrix();
     }
@@ -432,8 +540,6 @@ public class Platforms{
         plats.add(new Platform(0, height/2 + 200, 200, 25));
         plats.add(new Platform(width - 200, height/2 + 200, 200, 25));
         plats.add(new Platform(width - 200, height/2 - 200, 200, 25));
-
-
     }
 
     public void showPlatforms(){
@@ -444,16 +550,18 @@ public class Platforms{
 }
 
 class Platform{
-    private float x;
-    private float y;
-    private int w;
-    private int h;
+    private float x, y;
+    private int w, h, speed;
+    private boolean moving, right;
 
     public Platform(float tempX, float tempY, int tempW, int tempH){
         x = tempX;
         y = tempY;
         w = tempW;
         h = tempH;
+        moving = false;
+        right = true;
+        speed = 2;
     }
 
     public float getX(){
@@ -462,6 +570,18 @@ class Platform{
 
     public float getY(){
         return y;
+    }
+
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
+    public void setMove(boolean m){
+        moving = m;
     }
 
     public int getW(){
@@ -473,8 +593,123 @@ class Platform{
     }
 
     public void show(){
+        pushMatrix();
         fill(0);
+        if (moving){
+            if (right)
+                x += speed;
+            else
+                x -= speed;
+            if (x < 0 || x + w > width)
+                right = !right;
+        }
         rect(x, y, w, h);
+        popMatrix();
+    }
+}
+public class Power{
+    private float x;
+    private float y;
+    private int type;
+    private float size;
+    private boolean increase;
+    private int c;
+    private Platform midPlat;
+    private Tank p;
+    private HealthBar h;
+    private Bullet b;
+
+    public Power(Platform mid, Tank p, HealthBar h){
+        midPlat = mid;
+        this.p = p;
+        this.h = h;
+        this.b = b;
+        increase = true;
+        size = 20;
+        c = color(200, 0, 0);
+        x = midPlat.getX() + (midPlat.getW()/2);
+        y = midPlat.getY() - (midPlat.getH());
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
+    }
+
+    public int getType(){
+        return type;
+    }
+
+    private float getSize(){
+        return size;
+    }
+
+    private Tank getTank(){
+        return p;
+    }
+
+    private HealthBar getBar(){
+        return h;
+    }
+
+    private void setColor(int tempC){
+        c = tempC;
+    }
+
+    private void setType(int t){
+        type = t;
+    }
+
+    public void usePower(){
+
+    }
+
+    public void show(){
+        pushMatrix();
+        x = midPlat.getX() + (midPlat.getW()/2);
+        y = midPlat.getY() - (midPlat.getH());
+        if (increase)
+            size += 0.3f;
+        else
+            size -= 0.3f;
+        if (size > 40 || size < 20)
+            increase = !increase;
+
+        fill(c);
+        ellipse(x, y, size, size);
+        popMatrix();
+    }
+}
+
+class PowerHealth extends Power{
+    public PowerHealth(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        int healthColor = color(200, 0, 0);
+        super.setColor(healthColor);
+        super.setType(0);
+    }
+
+    public void usePower(){
+        int tempHealth = super.getTank().getHealth() + 3;
+        super.getTank().setHealth(tempHealth);
+        super.getBar().increaseSize(3);
+    }
+}
+
+class PowerShot extends Power{
+    public PowerShot(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        int shotColor = color(214, 123, 12);
+        super.setColor(shotColor);
+        super.setType(1);
+    }
+
+    public void usePower(){
+        //System.out.println("Power used");
+        super.getTank().setFastBullet(true);
     }
 }
 public class Tank{
@@ -500,10 +735,14 @@ public class Tank{
     private int count = 0;
     //Health for the player.
     private int health = 10;
-
+    //Time slot to make sure one bullet can't do more than one hit.
     private long pastTime = 0;
-
+    //Image for the tank to draw.
     private PImage img = loadImage("tank1.png");
+    //
+    private boolean speed = false;
+    //List to hold the power ups.
+    private ArrayList<Power> powerUps = new ArrayList<Power>();
 
     public void setAngle(float a){
         armAngle = a;
@@ -521,12 +760,12 @@ public class Tank{
         return x-(bodyW/2);
     }
 
-    public float getVelocity(){
-        return velocity;
-    }
-
     public float getY(){
         return y;
+    }
+
+    public float getVelocity(){
+        return velocity;
     }
 
     public float getArmX(){
@@ -557,9 +796,32 @@ public class Tank{
         return bodyW;
     }
 
-    public boolean takeHit(){
-        //System.out.println("HIT!");
+    public boolean isFastBullet(){
+        return speed;
+    }
 
+    public void setFastBullet(boolean b){
+        speed = b;
+    }
+
+    public void setHealth(int tempHealth){
+        health = tempHealth;
+        if (health > 10)
+            health = 10;
+    }
+
+    public void givePower(Power pUp){
+        powerUps.add(pUp);
+    }
+
+    public void usePower(){
+        if (powerUps.size() > 0){
+            powerUps.get(0).usePower();
+            powerUps.remove(0);
+        }
+    }
+
+    public boolean takeHit(){
         if (System.currentTimeMillis() - pastTime > 200){
             health--;
             pastTime = System.currentTimeMillis();
@@ -631,7 +893,7 @@ public class Tank{
         image(img, x-(bodyW/2), y, bodyW, bodyH);
     }
 }
-    public void settings() {  size(1100,800);  smooth(); }
+    public void settings() {  size(1300,900, P2D);  noSmooth(); }
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "JumpingTanks" };
         if (passedArgs != null) {

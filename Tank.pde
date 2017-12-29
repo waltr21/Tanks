@@ -21,10 +21,14 @@ public class Tank{
     private int count = 0;
     //Health for the player.
     private int health = 10;
-
+    //Time slot to make sure one bullet can't do more than one hit.
     private long pastTime = 0;
-
+    //Image for the tank to draw.
     private PImage img = loadImage("tank1.png");
+    //
+    private boolean speed = false;
+    //List to hold the power ups.
+    private ArrayList<Power> powerUps = new ArrayList<Power>();
 
     public void setAngle(float a){
         armAngle = a;
@@ -42,12 +46,12 @@ public class Tank{
         return x-(bodyW/2);
     }
 
-    public float getVelocity(){
-        return velocity;
-    }
-
     public float getY(){
         return y;
+    }
+
+    public float getVelocity(){
+        return velocity;
     }
 
     public float getArmX(){
@@ -78,9 +82,32 @@ public class Tank{
         return bodyW;
     }
 
-    public boolean takeHit(){
-        //System.out.println("HIT!");
+    public boolean isFastBullet(){
+        return speed;
+    }
 
+    public void setFastBullet(boolean b){
+        speed = b;
+    }
+
+    public void setHealth(int tempHealth){
+        health = tempHealth;
+        if (health > 10)
+            health = 10;
+    }
+
+    public void givePower(Power pUp){
+        powerUps.add(pUp);
+    }
+
+    public void usePower(){
+        if (powerUps.size() > 0){
+            powerUps.get(0).usePower();
+            powerUps.remove(0);
+        }
+    }
+
+    public boolean takeHit(){
         if (System.currentTimeMillis() - pastTime > 200){
             health--;
             pastTime = System.currentTimeMillis();
