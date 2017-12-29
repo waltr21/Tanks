@@ -34,6 +34,8 @@ public class TankServer{
                 if (clients.size() < 1){
                     clients.add(currentAddress);
                     System.out.println("Client added.");
+                    ByteBuffer firstBuff = ByteBuffer.wrap("F".getBytes());
+                    d1.send(firstBuff, currentAddress);
                 }
                 else if (clients.size() < MAX_PLAYERS){
                     if (clients.get(0) != (currentAddress)){

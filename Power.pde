@@ -93,7 +93,7 @@ class PowerHealth extends Power{
 class PowerShot extends Power{
     public PowerShot(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        color shotColor = color(255, 145, 12);
+        color shotColor = color(214, 123, 12);
         super.setColor(shotColor);
         super.setType(1);
     }

@@ -37,6 +37,7 @@ float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
 boolean holdingR, holdingL;
+boolean firstClient = false;
 DatagramChannel dc;
 String address = "127.0.0.1";
 int portNum = 8765;
@@ -99,6 +100,11 @@ public void draw(){
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
+    //If we are the first client we handle the position of the platform.
+    if (firstClient)
+        loc += "," + plats.getPlats().get(0).getX() + "," + plats.getPlats().get(0).getY();
+    else
+        loc += "," + "F" + "," + "F";
     for (Bullet b : bullets){
         loc += "," + b.getX() + "/" + b.getY();
     }
@@ -165,6 +171,13 @@ public void hitPower(){
                     power.usePower();
                 else
                     player.givePower(power);
+                try{
+                    ByteBuffer powerBuff = ByteBuffer.wrap("0".getBytes());
+                    dc.send(powerBuff, new InetSocketAddress(address, portNum));
+                }
+                catch(Exception e){
+                    System.out.println("Exception in hitPower: " + e);
+                }
                 power = null;
             }
         }
@@ -222,32 +235,51 @@ public void runThread(){
             ByteBuffer buffer = ByteBuffer.allocate(1024);
     		dc.receive(buffer);
             String message = new String(buffer.array());
+            message = message.trim();
             String[] coordinates = message.split(",");
 
-            /*
-             *[0] Tank X pos.
-             *[1] Tank Y pos.
-             *[2] Tank arm Angle pos.
-             *[3-X] Bullet X and Y pos.
-             */
-
-            enemy.setX(Float.parseFloat(coordinates[0]));
-            enemy.setY(Float.parseFloat(coordinates[1]));
-            enemy.setAngle(Float.parseFloat(coordinates[2]));
-            int bulletCount = 0;
-
-            for (int i = 3; i < coordinates.length; i++){
-                String[] bulletCoor = coordinates[i].split("/");
-                float locX = Float.parseFloat(bulletCoor[0]);
-                float locY = Float.parseFloat(bulletCoor[1]);
-                enemyBullets.get(bulletCount).setX(locX);
-                enemyBullets.get(bulletCount).setY(locY);
-                bulletCount++;
+            if (coordinates[0].equals("F")){
+                firstClient = true;
+                plats.getPlats().get(0).setMove(true);
             }
+            else if (coordinates[0].equals("0")){
+                power = null;
+            }
+            else{
 
-            for (int i = bulletCount; i < enemyBullets.size(); i++){
-                enemyBullets.get(i).setY(-1000);
-                enemyBullets.get(i).setX(-1000);
+                /*
+                 *[0] Tank X pos.
+                 *[1] Tank Y pos.
+                 *[2] Tank arm Angle pos.
+                 *[3] Plat X pos
+                 *[4] Plat Y pos
+                 *[5-X] Bullet X and Y pos.
+                 */
+
+                enemy.setX(Float.parseFloat(coordinates[0]));
+                enemy.setY(Float.parseFloat(coordinates[1]));
+                enemy.setAngle(Float.parseFloat(coordinates[2]));
+
+                if (!firstClient){
+                    plats.getPlats().get(0).setX(Float.parseFloat(coordinates[3]));
+                    plats.getPlats().get(0).setY(Float.parseFloat(coordinates[4]));
+                }
+
+                int bulletCount = 0;
+                for (int i = 5; i < coordinates.length; i++){
+                    String[] bulletCoor = coordinates[i].split("/");
+                    float locX = Float.parseFloat(bulletCoor[0]);
+                    float locY = Float.parseFloat(bulletCoor[1]);
+                    enemyBullets.get(bulletCount).setX(locX);
+                    enemyBullets.get(bulletCount).setY(locY);
+                    bulletCount++;
+                }
+
+                for (int i = bulletCount; i < enemyBullets.size(); i++){
+                    enemyBullets.get(i).setY(-1000);
+                    enemyBullets.get(i).setX(-1000);
+                }
+
             }
         }
     }
@@ -351,7 +383,7 @@ public class Bullet{
     public void travel(){
         pushMatrix();
         if(fast)
-            fill(255, 145, 12);
+            fill(214, 123, 12);
         else
             fill(0);
         ellipse(pos.x, pos.y, 10, 10);
@@ -488,11 +520,11 @@ public class Platforms{
     public Platforms(){
         int midHeight = 25;
         int midWidth = 70;
-        plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight, true));
-        plats.add(new Platform(0, height/2 - 200, 200, 25, false));
-        plats.add(new Platform(0, height/2 + 200, 200, 25, false));
-        plats.add(new Platform(width - 200, height/2 + 200, 200, 25, false));
-        plats.add(new Platform(width - 200, height/2 - 200, 200, 25, false));
+        plats.add(new Platform(width/2 - midWidth/2, height/2, midWidth, midHeight));
+        plats.add(new Platform(0, height/2 - 200, 200, 25));
+        plats.add(new Platform(0, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 + 200, 200, 25));
+        plats.add(new Platform(width - 200, height/2 - 200, 200, 25));
     }
 
     public void showPlatforms(){
@@ -507,12 +539,12 @@ class Platform{
     private int w, h, speed;
     private boolean moving, right;
 
-    public Platform(float tempX, float tempY, int tempW, int tempH, boolean move){
+    public Platform(float tempX, float tempY, int tempW, int tempH){
         x = tempX;
         y = tempY;
         w = tempW;
         h = tempH;
-        moving = move;
+        moving = false;
         right = true;
         speed = 2;
     }
@@ -525,16 +557,24 @@ class Platform{
         return y;
     }
 
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
+    public void setMove(boolean m){
+        moving = m;
+    }
+
     public int getW(){
         return w;
     }
 
     public int getH(){
         return h;
-    }
-
-    public void setX(float tempX){
-        x = tempX;
     }
 
     public void show(){
@@ -647,7 +687,7 @@ class PowerHealth extends Power{
 class PowerShot extends Power{
     public PowerShot(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        int shotColor = color(255, 145, 12);
+        int shotColor = color(214, 123, 12);
         super.setColor(shotColor);
         super.setType(1);
     }

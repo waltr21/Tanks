@@ -31,7 +31,7 @@ public class Bullet{
     public void travel(){
         pushMatrix();
         if(fast)
-            fill(255, 145, 12);
+            fill(214, 123, 12);
         else
             fill(0);
         ellipse(pos.x, pos.y, 10, 10);
