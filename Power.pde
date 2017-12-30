@@ -50,6 +50,10 @@ public class Power{
         c = tempC;
     }
 
+    public color getColor(){
+        return c;
+    }
+
     private void setType(int t){
         type = t;
     }

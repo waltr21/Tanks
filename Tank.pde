@@ -90,6 +90,10 @@ public class Tank{
         speed = b;
     }
 
+    public ArrayList<Power> getPowers(){
+        return powerUps;
+    }
+
     public void setHealth(int tempHealth){
         health = tempHealth;
         if (health > 10)

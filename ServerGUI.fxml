@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="328.0" prefWidth="523.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ServerController">
+   <children>
+      <Button fx:id="startButton" layoutX="299.0" layoutY="93.0" mnemonicParsing="false" onAction="#startClicked" text="Start Server" />
+      <Button fx:id="stopButton" layoutX="412.0" layoutY="93.0" mnemonicParsing="false" onAction="#stopClicked" text="Stop Server" />
+      <TextField fx:id="portField" layoutX="406.0" layoutY="14.0" prefHeight="27.0" prefWidth="103.0" />
+      <TextArea fx:id="resultArea" layoutX="14.0" layoutY="14.0" prefHeight="300.0" prefWidth="250.0" />
+      <Label fx:id="errorLabel" layoutX="272.0" layoutY="48.0" prefHeight="38.0" prefWidth="237.0" text="Port Number must be in range 1024–49151" textFill="#ee5555" wrapText="true" />
+      <Label layoutX="313.0" layoutY="19.0" text="Port Number: " />
+   </children>
+</AnchorPane>
