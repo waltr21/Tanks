@@ -77,6 +77,14 @@ public void setup(){
 
 public void draw(){
     background(236,236,236);
+    drawGame();
+}
+
+public void drawMenu(){
+    
+}
+
+public void drawGame(){
     //System.out.println(frameRate);
     player.move(dir);
     player.gravity();
@@ -356,6 +364,15 @@ public void keyPressed(){
 
 public void mouseClicked(){
     if (bullets.size() < 3){
+        if (bullets.size() < 3){
+            if (speedCount >= 5){
+                speedCount = 0;
+                player.setFastBullet(false);
+            }
+            if (player.isFastBullet())
+                speedCount++;
+        }
+
         //Calculate the x and y coordinates of the bullet before
         float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
         float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
