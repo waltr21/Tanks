@@ -134,6 +134,7 @@ public void drawGame(){
 
     //Show the graphics
     bar.show();
+    showPowerList();
     plats.showPlatforms();
     showPower();
     showAndBoundBullets();
@@ -267,6 +268,17 @@ public void landPlats(){
                 }
             }
         }
+    }
+}
+
+public void showPowerList(){
+    int startX = width - 30;
+    int startY = 30;
+    for (Power p : player.getPowers()){
+        fill(p.getColor());
+        //stroke();
+        ellipse(startX, startY, 30, 30);
+        startX -= 40;
     }
 }
 
@@ -787,6 +799,10 @@ public class Power{
         c = tempC;
     }
 
+    public int getColor(){
+        return c;
+    }
+
     private void setType(int t){
         type = t;
     }
@@ -930,6 +946,10 @@ public class Tank{
 
     public void setFastBullet(boolean b){
         speed = b;
+    }
+
+    public ArrayList<Power> getPowers(){
+        return powerUps;
     }
 
     public void setHealth(int tempHealth){
