@@ -31,12 +31,13 @@ EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
 Power power;
+ArrayList<MenuButton> buttons = new ArrayList<MenuButton>();
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
-boolean holdingR, holdingL;
+boolean holdingR, holdingL, playGame;
 boolean firstClient = false;
 DatagramChannel dc;
 String address = "127.0.0.1";
@@ -48,15 +49,8 @@ public void setup(){
     
     
 
-    player = new Tank();
-    enemy = new EnemyTank();
-    plats = new Platforms();
-    bar = new HealthBar(player.getHealth());
-    enemyBullets.add(new EnemyBullet(-1000, -1000));
-    enemyBullets.add(new EnemyBullet(-1000, -1000));
-    enemyBullets.add(new EnemyBullet(-1000, -1000));
-    power = null;
-    //power = new PowerShot(plats.getPlats().get(0), player, bar);
+    buttons.add(new MenuButton(width/2, height/2, "Play"));
+    resetGame();
 
     //Open the channel.
     try{
@@ -75,13 +69,57 @@ public void setup(){
     myThread.start();
 }
 
+public void resetGame(){
+    playGame = false;
+    player = new Tank();
+    enemy = new EnemyTank();
+    plats = new Platforms();
+    bar = new HealthBar(player.getHealth());
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    power = null;
+    if (firstClient){
+        plats.getPlats().get(0).setMove(true);
+    }
+}
+
 public void draw(){
     background(236,236,236);
-    drawGame();
+    if (!playGame)
+        drawMenu();
+    else
+        drawGame();
 }
 
 public void drawMenu(){
-    
+    showButton();
+    pushMatrix();
+    fill(0);
+    textSize(92);
+    String title = "Jumpy Tanks";
+    text(title, width/2 - (textWidth(title)/2), 150);
+    popMatrix();
+    player.move(dir);
+    player.gravity();
+    player.bound();
+    recentAngle = calculateArmAngle();
+    player.setAngle(recentAngle);
+    player.showBody();
+    player.showArm();
+}
+
+public void showButton(){
+    for (MenuButton m : buttons){
+        m.setHighlight(false);
+        if (mouseX > m.getX() && mouseX < m.getX() + m.getW()){
+            if (mouseY > m.getY() && mouseY < m.getY() + m.getH())
+                m.setHighlight(true);
+        }
+
+
+        m.show();
+    }
 }
 
 public void drawGame(){
@@ -107,6 +145,10 @@ public void drawGame(){
     landPlats();
     hitPower();
 
+    boolean reset = false;
+    if (player.displayDead())
+        reset = true;
+
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
     //If we are the first client we handle the position of the platform.
@@ -123,6 +165,10 @@ public void drawGame(){
     }
     catch(Exception e){
         System.out.println("Error in draw: " + e);
+    }
+
+    if (reset){
+        resetGame();
     }
 }
 
@@ -363,23 +409,32 @@ public void keyPressed(){
 }
 
 public void mouseClicked(){
-    if (bullets.size() < 3){
-        if (bullets.size() < 3){
-            if (speedCount >= 5){
-                speedCount = 0;
-                player.setFastBullet(false);
-            }
-            if (player.isFastBullet())
-                speedCount++;
+    if (!playGame){
+        if (mouseX > buttons.get(0).getX() && mouseX < buttons.get(0).getX() + buttons.get(0).getW()){
+            if (mouseY > buttons.get(0).getY() && mouseY < buttons.get(0).getY() + buttons.get(0).getH())
+                playGame = true;
         }
+    }
 
-        //Calculate the x and y coordinates of the bullet before
-        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
-        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
-        if (player.isFastBullet())
-            bullets.add(new Bullet(newX, newY, recentAngle, true));
-        else
-            bullets.add(new Bullet(newX, newY, recentAngle, false));
+    else{
+        if (bullets.size() < 3){
+            if (bullets.size() < 3){
+                if (speedCount >= 5){
+                    speedCount = 0;
+                    player.setFastBullet(false);
+                }
+                if (player.isFastBullet())
+                    speedCount++;
+            }
+
+            //Calculate the x and y coordinates of the bullet before
+            float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
+            float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
+            if (player.isFastBullet())
+                bullets.add(new Bullet(newX, newY, recentAngle, true));
+            else
+                bullets.add(new Bullet(newX, newY, recentAngle, false));
+        }
     }
 }
 public class Bullet{
@@ -541,6 +596,62 @@ public class HealthBar{
         rect(10, 10, size, w);
         popMatrix();
     }
+}
+public class MenuButton{
+    private float w, h, x, y;
+    private boolean highlight;
+    private String text;
+
+    public MenuButton(int x, int y, String t){
+        w = 600;
+        h = 40;
+        this.x = x - w/2;
+        this.y = y;
+        text = t;
+        highlight = false;
+    }
+
+    public void setHighlight(boolean b){
+        highlight = b;
+    }
+
+    public float getX(){
+        return x;
+    }
+
+    public float getY(){
+        return y;
+    }
+
+    public float getW(){
+        return w;
+    }
+
+    public float getH(){
+        return h;
+    }
+
+    public void show(){
+        pushMatrix();
+
+        textSize(30);
+        noStroke();
+        if (!highlight){
+            fill(0);
+            rect(x, y, w, h);
+            fill(236,236,236);
+            text(text, x + (w/2 - textWidth(text)/2), y + (h/2 + textAscent()/2) - 5);
+        }
+        else{
+            fill(236,236,236);
+            rect(x, y, w, h);
+            fill(0);
+            text(text, x + (w/2 - textWidth(text)/2), y + (h/2 + textAscent()/2) - 5);
+        }
+        popMatrix();
+    }
+
+
 }
 public class Platforms{
     private ArrayList<Platform> plats = new ArrayList<Platform>();
@@ -870,11 +981,13 @@ public class Tank{
         count = 0;
     }
 
-    public void displayDead(){
+    public boolean displayDead(){
         if (health <= 0){
             x = -1000;
             y = -1000;
+            return true;
         }
+        return false;
     }
 
     public void bound(){
@@ -896,7 +1009,6 @@ public class Tank{
     }
 
     public void showArm(){
-        displayDead();
         rotate(0);
         translate(x,y);
         rotate(armAngle);
@@ -905,7 +1017,6 @@ public class Tank{
     }
 
     public void showBody(){
-        displayDead();
         rotate(0);
         image(img, x-(bodyW/2), y, bodyW, bodyH);
     }

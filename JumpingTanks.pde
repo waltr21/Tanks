@@ -9,12 +9,13 @@ EnemyTank enemy;
 Platforms plats;
 HealthBar bar;
 Power power;
+ArrayList<MenuButton> buttons = new ArrayList<MenuButton>();
 ArrayList<Bullet> bullets = new ArrayList<Bullet>();
 ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
-boolean holdingR, holdingL;
+boolean holdingR, holdingL, playGame;
 boolean firstClient = false;
 DatagramChannel dc;
 String address = "127.0.0.1";
@@ -26,15 +27,8 @@ void setup(){
     size(1300,900, P2D);
     noSmooth();
 
-    player = new Tank();
-    enemy = new EnemyTank();
-    plats = new Platforms();
-    bar = new HealthBar(player.getHealth());
-    enemyBullets.add(new EnemyBullet(-1000, -1000));
-    enemyBullets.add(new EnemyBullet(-1000, -1000));
-    enemyBullets.add(new EnemyBullet(-1000, -1000));
-    power = null;
-    //power = new PowerShot(plats.getPlats().get(0), player, bar);
+    buttons.add(new MenuButton(width/2, height/2, "Play"));
+    resetGame();
 
     //Open the channel.
     try{
@@ -53,13 +47,57 @@ void setup(){
     myThread.start();
 }
 
+public void resetGame(){
+    playGame = false;
+    player = new Tank();
+    enemy = new EnemyTank();
+    plats = new Platforms();
+    bar = new HealthBar(player.getHealth());
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    enemyBullets.add(new EnemyBullet(-1000, -1000));
+    power = null;
+    if (firstClient){
+        plats.getPlats().get(0).setMove(true);
+    }
+}
+
 void draw(){
     background(236,236,236);
-    drawGame();
+    if (!playGame)
+        drawMenu();
+    else
+        drawGame();
 }
 
 public void drawMenu(){
-    
+    showButton();
+    pushMatrix();
+    fill(0);
+    textSize(92);
+    String title = "Jumpy Tanks";
+    text(title, width/2 - (textWidth(title)/2), 150);
+    popMatrix();
+    player.move(dir);
+    player.gravity();
+    player.bound();
+    recentAngle = calculateArmAngle();
+    player.setAngle(recentAngle);
+    player.showBody();
+    player.showArm();
+}
+
+public void showButton(){
+    for (MenuButton m : buttons){
+        m.setHighlight(false);
+        if (mouseX > m.getX() && mouseX < m.getX() + m.getW()){
+            if (mouseY > m.getY() && mouseY < m.getY() + m.getH())
+                m.setHighlight(true);
+        }
+
+
+        m.show();
+    }
 }
 
 public void drawGame(){
@@ -85,6 +123,10 @@ public void drawGame(){
     landPlats();
     hitPower();
 
+    boolean reset = false;
+    if (player.displayDead())
+        reset = true;
+
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
     //If we are the first client we handle the position of the platform.
@@ -101,6 +143,10 @@ public void drawGame(){
     }
     catch(Exception e){
         System.out.println("Error in draw: " + e);
+    }
+
+    if (reset){
+        resetGame();
     }
 }
 
@@ -341,22 +387,31 @@ void keyPressed(){
 }
 
 void mouseClicked(){
-    if (bullets.size() < 3){
-        if (bullets.size() < 3){
-            if (speedCount >= 5){
-                speedCount = 0;
-                player.setFastBullet(false);
-            }
-            if (player.isFastBullet())
-                speedCount++;
+    if (!playGame){
+        if (mouseX > buttons.get(0).getX() && mouseX < buttons.get(0).getX() + buttons.get(0).getW()){
+            if (mouseY > buttons.get(0).getY() && mouseY < buttons.get(0).getY() + buttons.get(0).getH())
+                playGame = true;
         }
+    }
 
-        //Calculate the x and y coordinates of the bullet before
-        float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
-        float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
-        if (player.isFastBullet())
-            bullets.add(new Bullet(newX, newY, recentAngle, true));
-        else
-            bullets.add(new Bullet(newX, newY, recentAngle, false));
+    else{
+        if (bullets.size() < 3){
+            if (bullets.size() < 3){
+                if (speedCount >= 5){
+                    speedCount = 0;
+                    player.setFastBullet(false);
+                }
+                if (player.isFastBullet())
+                    speedCount++;
+            }
+
+            //Calculate the x and y coordinates of the bullet before
+            float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
+            float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
+            if (player.isFastBullet())
+                bullets.add(new Bullet(newX, newY, recentAngle, true));
+            else
+                bullets.add(new Bullet(newX, newY, recentAngle, false));
+        }
     }
 }

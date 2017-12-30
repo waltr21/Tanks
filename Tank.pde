@@ -139,11 +139,13 @@ public class Tank{
         count = 0;
     }
 
-    public void displayDead(){
+    public boolean displayDead(){
         if (health <= 0){
             x = -1000;
             y = -1000;
+            return true;
         }
+        return false;
     }
 
     public void bound(){
@@ -165,7 +167,6 @@ public class Tank{
     }
 
     public void showArm(){
-        displayDead();
         rotate(0);
         translate(x,y);
         rotate(armAngle);
@@ -174,7 +175,6 @@ public class Tank{
     }
 
     public void showBody(){
-        displayDead();
         rotate(0);
         image(img, x-(bodyW/2), y, bodyW, bodyH);
     }
