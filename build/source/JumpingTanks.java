@@ -37,19 +37,32 @@ ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
-boolean holdingR, holdingL, playGame;
+boolean holdingR, holdingL, playGame, displayIncreasing;
+float powerDisplayW = 30;
 boolean firstClient = false;
 DatagramChannel dc;
 String address = "127.0.0.1";
 int portNum = 8765;
 int speedCount = 0;
+int scene = 0;
+PImage titleText, controlImage, powerImage;
+
 
 
 public void setup(){
     
     
+    titleText  = loadImage("Title.png");
+    controlImage = loadImage("Controls.png");
+    powerImage = loadImage("PowerUps.png");
 
     buttons.add(new MenuButton(width/2, height/2, "Play"));
+    buttons.add(new MenuButton(width/2, height/2 + 50, "Controls"));
+    buttons.add(new MenuButton(width/2, height/2 + 100, "Power-Ups"));
+    buttons.add(new MenuButton(width/2, height/2 + 150, "Network"));
+
+    displayIncreasing = true;
+
     resetGame();
 
     //Open the channel.
@@ -70,7 +83,7 @@ public void setup(){
 }
 
 public void resetGame(){
-    playGame = false;
+    scene = 0;
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
@@ -86,10 +99,20 @@ public void resetGame(){
 
 public void draw(){
     background(236,236,236);
-    if (!playGame)
-        drawMenu();
-    else
-        drawGame();
+    switch(scene){
+        case 0:
+            drawMenu();
+            break;
+        case 1:
+            drawGame();
+            break;
+        case 2:
+            drawControls();
+            break;
+        case 3:
+            drawPowers();
+            break;
+    }
 }
 
 public void drawMenu(){
@@ -97,8 +120,9 @@ public void drawMenu(){
     pushMatrix();
     fill(0);
     textSize(92);
-    String title = "Jumpy Tanks";
-    text(title, width/2 - (textWidth(title)/2), 150);
+    int titleW = 600;
+    int titleH = 270;
+    image(titleText, width/2 - (titleW/2), 50, titleW, titleH);
     popMatrix();
     player.move(dir);
     player.gravity();
@@ -116,10 +140,29 @@ public void showButton(){
             if (mouseY > m.getY() && mouseY < m.getY() + m.getH())
                 m.setHighlight(true);
         }
-
-
         m.show();
     }
+}
+
+public void drawControls(){
+    image(controlImage, width/2 - 450, 0, 900, 900);
+}
+
+public void drawPowers(){
+    if (displayIncreasing)
+        powerDisplayW += 0.5f;
+    else
+        powerDisplayW -= 0.5f;
+    if (powerDisplayW > 60 || powerDisplayW < 30)
+        displayIncreasing = !displayIncreasing;
+
+    fill(200, 0, 0);
+    ellipse(800, 60, powerDisplayW, powerDisplayW);
+    fill(0,0,200);
+    ellipse(800, 220, powerDisplayW, powerDisplayW);
+    fill(214, 123, 12);
+    ellipse(880, 410, powerDisplayW, powerDisplayW);
+    image(powerImage, width/2 - 450, 0, 900, 900);
 }
 
 public void drawGame(){
@@ -152,6 +195,10 @@ public void drawGame(){
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
+    if (player.isShield())
+        loc += "," + "S";
+    else
+        loc += "," + "N";
     //If we are the first client we handle the position of the platform.
     if (firstClient)
         loc += "," + plats.getPlats().get(0).getX() + "," + plats.getPlats().get(0).getY();
@@ -245,6 +292,9 @@ public void setPower(int type){
         power = new PowerHealth(plats.getPlats().get(0), player, bar);
     else if (type == 1)
         power = new PowerShot(plats.getPlats().get(0), player, bar);
+    else if (type == 2)
+        power = new PowerShield(plats.getPlats().get(0), player, bar);
+
     else
         System.out.println("Inavlid type");
 
@@ -332,22 +382,29 @@ public void runThread(){
                  *[0] Tank X pos.
                  *[1] Tank Y pos.
                  *[2] Tank arm Angle pos.
-                 *[3] Plat X pos
-                 *[4] Plat Y pos
-                 *[5-X] Bullet X and Y pos.
+                 *[3] Player shield.
+                 *[4] Plat X pos
+                 *[5] Plat Y pos
+                 *[6-X] Bullet X and Y pos.
                  */
 
                 enemy.setX(Float.parseFloat(coordinates[0]));
                 enemy.setY(Float.parseFloat(coordinates[1]));
                 enemy.setAngle(Float.parseFloat(coordinates[2]));
 
+                if (coordinates[3].equals("S"))
+                    enemy.setShield(true);
+                else
+                    enemy.setShield(false);
+
+
                 if (!firstClient){
-                    plats.getPlats().get(0).setX(Float.parseFloat(coordinates[3]));
-                    plats.getPlats().get(0).setY(Float.parseFloat(coordinates[4]));
+                    plats.getPlats().get(0).setX(Float.parseFloat(coordinates[4]));
+                    plats.getPlats().get(0).setY(Float.parseFloat(coordinates[5]));
                 }
 
                 int bulletCount = 0;
-                for (int i = 5; i < coordinates.length; i++){
+                for (int i = 6; i < coordinates.length; i++){
                     String[] bulletCoor = coordinates[i].split("/");
                     float locX = Float.parseFloat(bulletCoor[0]);
                     float locY = Float.parseFloat(bulletCoor[1]);
@@ -421,11 +478,22 @@ public void keyPressed(){
 }
 
 public void mouseClicked(){
-    if (!playGame){
+    if (scene == 0){
         if (mouseX > buttons.get(0).getX() && mouseX < buttons.get(0).getX() + buttons.get(0).getW()){
             if (mouseY > buttons.get(0).getY() && mouseY < buttons.get(0).getY() + buttons.get(0).getH())
-                playGame = true;
+                scene = 1;
         }
+        if (mouseX > buttons.get(1).getX() && mouseX < buttons.get(1).getX() + buttons.get(1).getW()){
+            if (mouseY > buttons.get(1).getY() && mouseY < buttons.get(1).getY() + buttons.get(1).getH())
+                scene = 2;
+        }
+        if (mouseX > buttons.get(2).getX() && mouseX < buttons.get(2).getX() + buttons.get(2).getW()){
+            if (mouseY > buttons.get(2).getY() && mouseY < buttons.get(2).getY() + buttons.get(2).getH())
+                scene = 3;
+        }
+    }
+    else if (scene == 2 || scene == 3){
+        scene = 0;
     }
 
     else{
@@ -529,6 +597,7 @@ public class EnemyTank{
     private int armW = 80;
     private int armH = 8;
     private float angle = 0;
+    private boolean shield = false;
     private PImage img = loadImage("tank2.png");
 
     public void setAngle(float a){
@@ -537,6 +606,10 @@ public class EnemyTank{
 
     public void setX(float tempX){
         x = tempX;
+    }
+
+    public void setShield(boolean b){
+        shield = b;
     }
 
     public float getX(){
@@ -555,12 +628,22 @@ public class EnemyTank{
         y = tempY;
     }
 
-
     public void showBody(){
         rotate(0);
         pushMatrix();
+
+
+
         //translate according to the position of the tank arm.
         translate(x+(bodyW/2), y);
+
+        if (shield){
+            noFill();
+            strokeWeight(3);
+            stroke(0,0,200);
+            ellipse(0, 0, 140, 140);
+        }
+        noStroke();
 
         //Draw the body to the adjusted translate pos.
         image(img, -(bodyW/2), 0, bodyW, bodyH);
@@ -570,6 +653,7 @@ public class EnemyTank{
         //Draw the recentAngle slightly adjusted so it can
         //rotate from its center point.
         rect(0, -armH/2, armW, armH);
+
         popMatrix();
     }
 
@@ -779,6 +863,14 @@ public class Power{
         return y;
     }
 
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
     public int getType(){
         return type;
     }
@@ -856,6 +948,19 @@ class PowerShot extends Power{
         super.getTank().setFastBullet(true);
     }
 }
+
+class PowerShield extends Power{
+    public PowerShield(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        int healthColor = color(0, 0, 200);
+        super.setColor(healthColor);
+        super.setType(2);
+    }
+
+    public void usePower(){
+        super.getTank().giveShield();
+    }
+}
 public class Tank{
     //X value for the take and rotations
     private float x = width/2;
@@ -883,8 +988,12 @@ public class Tank{
     private long pastTime = 0;
     //Image for the tank to draw.
     private PImage img = loadImage("tank1.png");
-    //
+    //Boolean for the speed of the bullet
     private boolean speed = false;
+    //Boolean for the shield of the tank.
+    private boolean shield = false;
+
+    private int shieldCount = 0;
     //List to hold the power ups.
     private ArrayList<Power> powerUps = new ArrayList<Power>();
 
@@ -969,11 +1078,28 @@ public class Tank{
         }
     }
 
+    public void giveShield(){
+        shield = true;
+        shieldCount = 0;
+    }
+
+    public boolean isShield(){
+        return shield;
+    }
+
     public boolean takeHit(){
         if (System.currentTimeMillis() - pastTime > 200){
-            health--;
             pastTime = System.currentTimeMillis();
-            return true;
+            if (!shield){
+                health--;
+                return true;
+            }
+            if (shield){
+                shieldCount++;
+            }
+            if (shield && shieldCount > 2){
+                shield = false;
+            }
         }
         return false;
     }
@@ -1037,8 +1163,19 @@ public class Tank{
     }
 
     public void showBody(){
+        pushMatrix();
         rotate(0);
         image(img, x-(bodyW/2), y, bodyW, bodyH);
+        if (shield){
+            noFill();
+            strokeWeight(3);
+            stroke(0,0,200);
+            ellipse(x, y, 140, 140);
+
+        }
+        popMatrix();
+        noStroke();
+
     }
 }
     public void settings() {  size(1300,900, P2D);  noSmooth(); }

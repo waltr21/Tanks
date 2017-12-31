@@ -30,6 +30,14 @@ public class Power{
         return y;
     }
 
+    public void setX(float tempX){
+        x = tempX;
+    }
+
+    public void setY(float tempY){
+        y = tempY;
+    }
+
     public int getType(){
         return type;
     }
@@ -105,5 +113,18 @@ class PowerShot extends Power{
     public void usePower(){
         //System.out.println("Power used");
         super.getTank().setFastBullet(true);
+    }
+}
+
+class PowerShield extends Power{
+    public PowerShield(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        color healthColor = color(0, 0, 200);
+        super.setColor(healthColor);
+        super.setType(2);
+    }
+
+    public void usePower(){
+        super.getTank().giveShield();
     }
 }

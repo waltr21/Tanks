@@ -25,8 +25,12 @@ public class Tank{
     private long pastTime = 0;
     //Image for the tank to draw.
     private PImage img = loadImage("tank1.png");
-    //
+    //Boolean for the speed of the bullet
     private boolean speed = false;
+    //Boolean for the shield of the tank.
+    private boolean shield = false;
+
+    private int shieldCount = 0;
     //List to hold the power ups.
     private ArrayList<Power> powerUps = new ArrayList<Power>();
 
@@ -111,11 +115,28 @@ public class Tank{
         }
     }
 
+    public void giveShield(){
+        shield = true;
+        shieldCount = 0;
+    }
+
+    public boolean isShield(){
+        return shield;
+    }
+
     public boolean takeHit(){
         if (System.currentTimeMillis() - pastTime > 200){
-            health--;
             pastTime = System.currentTimeMillis();
-            return true;
+            if (!shield){
+                health--;
+                return true;
+            }
+            if (shield){
+                shieldCount++;
+            }
+            if (shield && shieldCount > 2){
+                shield = false;
+            }
         }
         return false;
     }
@@ -179,7 +200,18 @@ public class Tank{
     }
 
     public void showBody(){
+        pushMatrix();
         rotate(0);
         image(img, x-(bodyW/2), y, bodyW, bodyH);
+        if (shield){
+            noFill();
+            strokeWeight(3);
+            stroke(0,0,200);
+            ellipse(x, y, 140, 140);
+
+        }
+        popMatrix();
+        noStroke();
+
     }
 }

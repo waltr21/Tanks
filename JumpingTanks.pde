@@ -15,19 +15,32 @@ ArrayList<EnemyBullet> enemyBullets = new ArrayList<EnemyBullet>();
 float recentAngle = 30;
 int dir = 0;
 int gravity = 10;
-boolean holdingR, holdingL, playGame;
+boolean holdingR, holdingL, playGame, displayIncreasing;
+float powerDisplayW = 30;
 boolean firstClient = false;
 DatagramChannel dc;
 String address = "127.0.0.1";
 int portNum = 8765;
 int speedCount = 0;
+int scene = 0;
+PImage titleText, controlImage, powerImage;
+
 
 
 void setup(){
     size(1300,900, P2D);
     noSmooth();
+    titleText  = loadImage("Title.png");
+    controlImage = loadImage("Controls.png");
+    powerImage = loadImage("PowerUps.png");
 
     buttons.add(new MenuButton(width/2, height/2, "Play"));
+    buttons.add(new MenuButton(width/2, height/2 + 50, "Controls"));
+    buttons.add(new MenuButton(width/2, height/2 + 100, "Power-Ups"));
+    buttons.add(new MenuButton(width/2, height/2 + 150, "Network"));
+
+    displayIncreasing = true;
+
     resetGame();
 
     //Open the channel.
@@ -48,7 +61,7 @@ void setup(){
 }
 
 public void resetGame(){
-    playGame = false;
+    scene = 0;
     player = new Tank();
     enemy = new EnemyTank();
     plats = new Platforms();
@@ -64,10 +77,20 @@ public void resetGame(){
 
 void draw(){
     background(236,236,236);
-    if (!playGame)
-        drawMenu();
-    else
-        drawGame();
+    switch(scene){
+        case 0:
+            drawMenu();
+            break;
+        case 1:
+            drawGame();
+            break;
+        case 2:
+            drawControls();
+            break;
+        case 3:
+            drawPowers();
+            break;
+    }
 }
 
 public void drawMenu(){
@@ -75,8 +98,9 @@ public void drawMenu(){
     pushMatrix();
     fill(0);
     textSize(92);
-    String title = "Jumpy Tanks";
-    text(title, width/2 - (textWidth(title)/2), 150);
+    int titleW = 600;
+    int titleH = 270;
+    image(titleText, width/2 - (titleW/2), 50, titleW, titleH);
     popMatrix();
     player.move(dir);
     player.gravity();
@@ -94,10 +118,29 @@ public void showButton(){
             if (mouseY > m.getY() && mouseY < m.getY() + m.getH())
                 m.setHighlight(true);
         }
-
-
         m.show();
     }
+}
+
+public void drawControls(){
+    image(controlImage, width/2 - 450, 0, 900, 900);
+}
+
+public void drawPowers(){
+    if (displayIncreasing)
+        powerDisplayW += 0.5;
+    else
+        powerDisplayW -= 0.5;
+    if (powerDisplayW > 60 || powerDisplayW < 30)
+        displayIncreasing = !displayIncreasing;
+
+    fill(200, 0, 0);
+    ellipse(800, 60, powerDisplayW, powerDisplayW);
+    fill(0,0,200);
+    ellipse(800, 220, powerDisplayW, powerDisplayW);
+    fill(214, 123, 12);
+    ellipse(880, 410, powerDisplayW, powerDisplayW);
+    image(powerImage, width/2 - 450, 0, 900, 900);
 }
 
 public void drawGame(){
@@ -130,6 +173,10 @@ public void drawGame(){
 
     //Pack the appropriate coordinates into strings and send them.
     String loc = player.getX() + "," + player.getY() + "," + player.getAngle();
+    if (player.isShield())
+        loc += "," + "S";
+    else
+        loc += "," + "N";
     //If we are the first client we handle the position of the platform.
     if (firstClient)
         loc += "," + plats.getPlats().get(0).getX() + "," + plats.getPlats().get(0).getY();
@@ -223,6 +270,9 @@ public void setPower(int type){
         power = new PowerHealth(plats.getPlats().get(0), player, bar);
     else if (type == 1)
         power = new PowerShot(plats.getPlats().get(0), player, bar);
+    else if (type == 2)
+        power = new PowerShield(plats.getPlats().get(0), player, bar);
+
     else
         System.out.println("Inavlid type");
 
@@ -310,22 +360,29 @@ public void runThread(){
                  *[0] Tank X pos.
                  *[1] Tank Y pos.
                  *[2] Tank arm Angle pos.
-                 *[3] Plat X pos
-                 *[4] Plat Y pos
-                 *[5-X] Bullet X and Y pos.
+                 *[3] Player shield.
+                 *[4] Plat X pos
+                 *[5] Plat Y pos
+                 *[6-X] Bullet X and Y pos.
                  */
 
                 enemy.setX(Float.parseFloat(coordinates[0]));
                 enemy.setY(Float.parseFloat(coordinates[1]));
                 enemy.setAngle(Float.parseFloat(coordinates[2]));
 
+                if (coordinates[3].equals("S"))
+                    enemy.setShield(true);
+                else
+                    enemy.setShield(false);
+
+
                 if (!firstClient){
-                    plats.getPlats().get(0).setX(Float.parseFloat(coordinates[3]));
-                    plats.getPlats().get(0).setY(Float.parseFloat(coordinates[4]));
+                    plats.getPlats().get(0).setX(Float.parseFloat(coordinates[4]));
+                    plats.getPlats().get(0).setY(Float.parseFloat(coordinates[5]));
                 }
 
                 int bulletCount = 0;
-                for (int i = 5; i < coordinates.length; i++){
+                for (int i = 6; i < coordinates.length; i++){
                     String[] bulletCoor = coordinates[i].split("/");
                     float locX = Float.parseFloat(bulletCoor[0]);
                     float locY = Float.parseFloat(bulletCoor[1]);
@@ -399,11 +456,22 @@ void keyPressed(){
 }
 
 void mouseClicked(){
-    if (!playGame){
+    if (scene == 0){
         if (mouseX > buttons.get(0).getX() && mouseX < buttons.get(0).getX() + buttons.get(0).getW()){
             if (mouseY > buttons.get(0).getY() && mouseY < buttons.get(0).getY() + buttons.get(0).getH())
-                playGame = true;
+                scene = 1;
         }
+        if (mouseX > buttons.get(1).getX() && mouseX < buttons.get(1).getX() + buttons.get(1).getW()){
+            if (mouseY > buttons.get(1).getY() && mouseY < buttons.get(1).getY() + buttons.get(1).getH())
+                scene = 2;
+        }
+        if (mouseX > buttons.get(2).getX() && mouseX < buttons.get(2).getX() + buttons.get(2).getW()){
+            if (mouseY > buttons.get(2).getY() && mouseY < buttons.get(2).getY() + buttons.get(2).getH())
+                scene = 3;
+        }
+    }
+    else if (scene == 2 || scene == 3){
+        scene = 0;
     }
 
     else{

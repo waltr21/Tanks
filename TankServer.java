@@ -75,7 +75,7 @@ public class TankServer{
                     }
                 }
                 boolean changed = false;
-                int newType = r.nextInt(2);
+                int newType = r.nextInt(3);
 
                 //Send the packets to the clients.
                 for (SocketAddress addr : clients){
