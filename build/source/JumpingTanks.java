@@ -119,7 +119,7 @@ public void drawMenu(){
     showButton();
     pushMatrix();
     fill(0);
-    textSize(92);   
+    textSize(92);
     int titleW = 600;
     int titleH = 270;
     image(titleText, width/2 - (titleW/2), 50, titleW, titleH);
@@ -294,11 +294,13 @@ public void setPower(int type){
         power = new PowerShot(plats.getPlats().get(0), player, bar);
     else if (type == 2)
         power = new PowerShield(plats.getPlats().get(0), player, bar);
+    else if (type == 3)
+        power = new PowerSpeed(plats.getPlats().get(0), player, bar);
+    else if (type == 4)
+        power = new PowerJump(plats.getPlats().get(0), player, bar);
 
     else
         System.out.println("Inavlid type");
-
-
 }
 
 public void landPlats(){
@@ -455,7 +457,7 @@ public void keyPressed(){
     //Add a bullet to the ArrayList when the player fires.
     if (key == ' '){
         if (bullets.size() < 3){
-            if (speedCount >= 5){
+            if (speedCount >= 10){
                 speedCount = 0;
                 player.setFastBullet(false);
             }
@@ -662,7 +664,7 @@ public class HealthBar{
     private int MAX_SIZE;
 
     public HealthBar(int h){
-        incr = 2;
+        incr = 20;
         size = h * incr;
         MAX_SIZE = h * incr;
         w = 20;
@@ -952,13 +954,39 @@ class PowerShot extends Power{
 class PowerShield extends Power{
     public PowerShield(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        int healthColor = color(0, 0, 200);
-        super.setColor(healthColor);
+        int shieldColor = color(0, 0, 200);
+        super.setColor(shieldColor);
         super.setType(2);
     }
 
     public void usePower(){
         super.getTank().giveShield();
+    }
+}
+
+class PowerSpeed extends Power{
+    public PowerSpeed(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        int speedColor = color(0, 200, 0);
+        super.setColor(speedColor);
+        super.setType(3);
+    }
+
+    public void usePower(){
+        super.getTank().setSpeed(true);
+    }
+}
+
+class PowerJump extends Power{
+    public PowerJump(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        int jumpColor = color(226, 229, 50);
+        super.setColor(jumpColor);
+        super.setType(4);
+    }
+
+    public void usePower(){
+        super.getTank().setJump(10000);
     }
 }
 public class Tank{
@@ -983,7 +1011,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 100;
+    private int health = 10;
     //Time slot to make sure one bullet can't do more than one hit.
     private long pastTime = 0;
     //Image for the tank to draw.
@@ -992,8 +1020,12 @@ public class Tank{
     private boolean speed = false;
     //Boolean for the shield of the tank.
     private boolean shield = false;
-
+    private boolean tankFast = false;
     private int shieldCount = 0;
+    private int speedTimeStamp = 0;
+    private int maxTime = 20000;
+    private int maxJump = 2;
+    private int jumpTimeStamp = 0;
     //List to hold the power ups.
     private ArrayList<Power> powerUps = new ArrayList<Power>();
 
@@ -1087,23 +1119,43 @@ public class Tank{
         return shield;
     }
 
-    public boolean takeHit(){
-        //pastTime = System.currentTimeMillis();
-        if (!shield){
-            health--;
-            return true;
+    public void setSpeed(boolean b){
+        tankFast = b;
+        if (tankFast){
+            speedTimeStamp = millis();
         }
-        if (shield){
-            shieldCount++;
-        }
-        if (shield && shieldCount > 30){
-            shield = false;
-        }
+    }
 
+    public void setJump(int j){
+        maxJump = j;
+        jumpTimeStamp = millis();
+    }
+
+    public boolean takeHit(){
+        if (System.currentTimeMillis() - pastTime > 200){
+            pastTime = System.currentTimeMillis();
+            if (!shield){
+                health--;
+                return true;
+            }
+            if (shield){
+                shieldCount++;
+            }
+            if (shield && shieldCount > 2){
+                shield = false;
+            }
+        }
         return false;
     }
 
     public void move(int dir){
+        if (tankFast && millis() - speedTimeStamp > maxTime)
+            tankFast = false;
+        if (maxJump > 2 && millis() - jumpTimeStamp > maxTime)
+            maxJump = 2;
+
+        if (tankFast)
+            dir *= 2;
         x += dir;
     }
 
@@ -1117,7 +1169,7 @@ public class Tank{
     }
 
     public void jump(){
-        if (count < 2)
+        if (count < maxJump)
             velocity -= 10;
         count++;
     }

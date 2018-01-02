@@ -5,7 +5,7 @@ public class HealthBar{
     private int MAX_SIZE;
 
     public HealthBar(int h){
-        incr = 2;
+        incr = 20;
         size = h * incr;
         MAX_SIZE = h * incr;
         w = 20;

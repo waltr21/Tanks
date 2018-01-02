@@ -97,7 +97,7 @@ public void drawMenu(){
     showButton();
     pushMatrix();
     fill(0);
-    textSize(92);   
+    textSize(92);
     int titleW = 600;
     int titleH = 270;
     image(titleText, width/2 - (titleW/2), 50, titleW, titleH);
@@ -272,11 +272,13 @@ public void setPower(int type){
         power = new PowerShot(plats.getPlats().get(0), player, bar);
     else if (type == 2)
         power = new PowerShield(plats.getPlats().get(0), player, bar);
+    else if (type == 3)
+        power = new PowerSpeed(plats.getPlats().get(0), player, bar);
+    else if (type == 4)
+        power = new PowerJump(plats.getPlats().get(0), player, bar);
 
     else
         System.out.println("Inavlid type");
-
-
 }
 
 public void landPlats(){
@@ -433,7 +435,7 @@ void keyPressed(){
     //Add a bullet to the ArrayList when the player fires.
     if (key == ' '){
         if (bullets.size() < 3){
-            if (speedCount >= 5){
+            if (speedCount >= 10){
                 speedCount = 0;
                 player.setFastBullet(false);
             }

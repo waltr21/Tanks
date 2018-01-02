@@ -20,7 +20,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 100;
+    private int health = 10;
     //Time slot to make sure one bullet can't do more than one hit.
     private long pastTime = 0;
     //Image for the tank to draw.
@@ -29,8 +29,12 @@ public class Tank{
     private boolean speed = false;
     //Boolean for the shield of the tank.
     private boolean shield = false;
-
+    private boolean tankFast = false;
     private int shieldCount = 0;
+    private int speedTimeStamp = 0;
+    private int maxTime = 20000;
+    private int maxJump = 2;
+    private int jumpTimeStamp = 0;
     //List to hold the power ups.
     private ArrayList<Power> powerUps = new ArrayList<Power>();
 
@@ -124,23 +128,43 @@ public class Tank{
         return shield;
     }
 
-    public boolean takeHit(){
-        //pastTime = System.currentTimeMillis();
-        if (!shield){
-            health--;
-            return true;
+    public void setSpeed(boolean b){
+        tankFast = b;
+        if (tankFast){
+            speedTimeStamp = millis();
         }
-        if (shield){
-            shieldCount++;
-        }
-        if (shield && shieldCount > 30){
-            shield = false;
-        }
+    }
 
+    public void setJump(int j){
+        maxJump = j;
+        jumpTimeStamp = millis();
+    }
+
+    public boolean takeHit(){
+        if (System.currentTimeMillis() - pastTime > 200){
+            pastTime = System.currentTimeMillis();
+            if (!shield){
+                health--;
+                return true;
+            }
+            if (shield){
+                shieldCount++;
+            }
+            if (shield && shieldCount > 2){
+                shield = false;
+            }
+        }
         return false;
     }
 
     public void move(int dir){
+        if (tankFast && millis() - speedTimeStamp > maxTime)
+            tankFast = false;
+        if (maxJump > 2 && millis() - jumpTimeStamp > maxTime)
+            maxJump = 2;
+
+        if (tankFast)
+            dir *= 2;
         x += dir;
     }
 
@@ -154,7 +178,7 @@ public class Tank{
     }
 
     public void jump(){
-        if (count < 2)
+        if (count < maxJump)
             velocity -= 10;
         count++;
     }

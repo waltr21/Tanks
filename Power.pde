@@ -119,12 +119,38 @@ class PowerShot extends Power{
 class PowerShield extends Power{
     public PowerShield(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        color healthColor = color(0, 0, 200);
-        super.setColor(healthColor);
+        color shieldColor = color(0, 0, 200);
+        super.setColor(shieldColor);
         super.setType(2);
     }
 
     public void usePower(){
         super.getTank().giveShield();
+    }
+}
+
+class PowerSpeed extends Power{
+    public PowerSpeed(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        color speedColor = color(0, 200, 0);
+        super.setColor(speedColor);
+        super.setType(3);
+    }
+
+    public void usePower(){
+        super.getTank().setSpeed(true);
+    }
+}
+
+class PowerJump extends Power{
+    public PowerJump(Platform mid, Tank p, HealthBar h){
+        super(mid, p, h);
+        color jumpColor = color(226, 229, 50);
+        super.setColor(jumpColor);
+        super.setType(4);
+    }
+
+    public void usePower(){
+        super.getTank().setJump(10000);
     }
 }
