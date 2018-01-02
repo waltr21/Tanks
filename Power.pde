@@ -96,9 +96,9 @@ class PowerHealth extends Power{
     }
 
     public void usePower(){
-        int tempHealth = super.getTank().getHealth() + 3;
+        int tempHealth = super.getTank().getHealth() + 30;
         super.getTank().setHealth(tempHealth);
-        super.getBar().increaseSize(3);
+        super.getBar().increaseSize(30);
     }
 }
 

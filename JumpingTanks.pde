@@ -97,7 +97,7 @@ public void drawMenu(){
     showButton();
     pushMatrix();
     fill(0);
-    textSize(92);
+    textSize(92);   
     int titleW = 600;
     int titleH = 270;
     image(titleText, width/2 - (titleW/2), 50, titleW, titleH);

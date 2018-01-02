@@ -119,7 +119,7 @@ public void drawMenu(){
     showButton();
     pushMatrix();
     fill(0);
-    textSize(92);
+    textSize(92);   
     int titleW = 600;
     int titleH = 270;
     image(titleText, width/2 - (titleW/2), 50, titleW, titleH);
@@ -632,8 +632,6 @@ public class EnemyTank{
         rotate(0);
         pushMatrix();
 
-
-
         //translate according to the position of the tank arm.
         translate(x+(bodyW/2), y);
 
@@ -656,8 +654,6 @@ public class EnemyTank{
 
         popMatrix();
     }
-
-
 }
 public class HealthBar{
     private int size;
@@ -666,7 +662,7 @@ public class HealthBar{
     private int MAX_SIZE;
 
     public HealthBar(int h){
-        incr = 20;
+        incr = 2;
         size = h * incr;
         MAX_SIZE = h * incr;
         w = 20;
@@ -688,8 +684,12 @@ public class HealthBar{
     public void show(){
         pushMatrix();
         //if (size/incr > 100)
+
         fill(0,200,0);
-        rect(10, 10, size, w);
+        rect(50, 10, size, w);
+        fill(0);
+        textSize(20);
+        text(size/2, 5 , 26 );
         popMatrix();
     }
 }
@@ -929,9 +929,9 @@ class PowerHealth extends Power{
     }
 
     public void usePower(){
-        int tempHealth = super.getTank().getHealth() + 3;
+        int tempHealth = super.getTank().getHealth() + 30;
         super.getTank().setHealth(tempHealth);
-        super.getBar().increaseSize(3);
+        super.getBar().increaseSize(30);
     }
 }
 
@@ -983,7 +983,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 10;
+    private int health = 100;
     //Time slot to make sure one bullet can't do more than one hit.
     private long pastTime = 0;
     //Image for the tank to draw.
@@ -1088,19 +1088,18 @@ public class Tank{
     }
 
     public boolean takeHit(){
-        if (System.currentTimeMillis() - pastTime > 200){
-            pastTime = System.currentTimeMillis();
-            if (!shield){
-                health--;
-                return true;
-            }
-            if (shield){
-                shieldCount++;
-            }
-            if (shield && shieldCount > 2){
-                shield = false;
-            }
+        //pastTime = System.currentTimeMillis();
+        if (!shield){
+            health--;
+            return true;
         }
+        if (shield){
+            shieldCount++;
+        }
+        if (shield && shieldCount > 30){
+            shield = false;
+        }
+
         return false;
     }
 

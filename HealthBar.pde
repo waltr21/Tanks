@@ -5,7 +5,7 @@ public class HealthBar{
     private int MAX_SIZE;
 
     public HealthBar(int h){
-        incr = 20;
+        incr = 2;
         size = h * incr;
         MAX_SIZE = h * incr;
         w = 20;
@@ -27,8 +27,12 @@ public class HealthBar{
     public void show(){
         pushMatrix();
         //if (size/incr > 100)
+
         fill(0,200,0);
-        rect(10, 10, size, w);
+        rect(50, 10, size, w);
+        fill(0);
+        textSize(20);
+        text(size/2, 5 , 26 );
         popMatrix();
     }
 }

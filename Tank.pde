@@ -20,7 +20,7 @@ public class Tank{
     //Count to limit the jumps to one.
     private int count = 0;
     //Health for the player.
-    private int health = 10;
+    private int health = 100;
     //Time slot to make sure one bullet can't do more than one hit.
     private long pastTime = 0;
     //Image for the tank to draw.
@@ -125,19 +125,18 @@ public class Tank{
     }
 
     public boolean takeHit(){
-        if (System.currentTimeMillis() - pastTime > 200){
-            pastTime = System.currentTimeMillis();
-            if (!shield){
-                health--;
-                return true;
-            }
-            if (shield){
-                shieldCount++;
-            }
-            if (shield && shieldCount > 2){
-                shield = false;
-            }
+        //pastTime = System.currentTimeMillis();
+        if (!shield){
+            health--;
+            return true;
         }
+        if (shield){
+            shieldCount++;
+        }
+        if (shield && shieldCount > 30){
+            shield = false;
+        }
+
         return false;
     }
 

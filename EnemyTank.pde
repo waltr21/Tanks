@@ -41,8 +41,6 @@ public class EnemyTank{
         rotate(0);
         pushMatrix();
 
-
-
         //translate according to the position of the tank arm.
         translate(x+(bodyW/2), y);
 
@@ -65,6 +63,4 @@ public class EnemyTank{
 
         popMatrix();
     }
-
-
 }
