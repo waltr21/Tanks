@@ -162,6 +162,11 @@ public void drawPowers(){
     ellipse(800, 220, powerDisplayW, powerDisplayW);
     fill(214, 123, 12);
     ellipse(880, 410, powerDisplayW, powerDisplayW);
+    fill(46, 195, 209);
+    ellipse(805, 600, powerDisplayW, powerDisplayW);
+    fill(11, 168, 11);
+    ellipse(805, 760, powerDisplayW, powerDisplayW);
+
     image(powerImage, width/2 - 450, 0, 900, 900);
 }
 

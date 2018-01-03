@@ -134,12 +134,22 @@ public void drawPowers(){
     if (powerDisplayW > 60 || powerDisplayW < 30)
         displayIncreasing = !displayIncreasing;
 
+    //Health display
     fill(200, 0, 0);
     ellipse(800, 60, powerDisplayW, powerDisplayW);
+    //Shield display
     fill(0,0,200);
     ellipse(800, 220, powerDisplayW, powerDisplayW);
+    //Speed bullet display
     fill(214, 123, 12);
     ellipse(880, 410, powerDisplayW, powerDisplayW);
+    //Jump display
+    fill(46, 195, 209);
+    ellipse(805, 600, powerDisplayW, powerDisplayW);
+    //Tank speed display
+    fill(11, 168, 11);
+    ellipse(805, 760, powerDisplayW, powerDisplayW);
+
     image(powerImage, width/2 - 450, 0, 900, 900);
 }
 
