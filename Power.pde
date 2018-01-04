@@ -96,9 +96,9 @@ class PowerHealth extends Power{
     }
 
     public void usePower(){
-        int tempHealth = super.getTank().getHealth() + 30;
+        int tempHealth = super.getTank().getHealth() + 3;
         super.getTank().setHealth(tempHealth);
-        super.getBar().increaseSize(30);
+        super.getBar().increaseSize(3);
     }
 }
 
@@ -132,7 +132,7 @@ class PowerShield extends Power{
 class PowerSpeed extends Power{
     public PowerSpeed(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        color speedColor = color(0, 200, 0);
+        color speedColor = color(11, 168, 11);
         super.setColor(speedColor);
         super.setType(3);
     }
@@ -145,7 +145,7 @@ class PowerSpeed extends Power{
 class PowerJump extends Power{
     public PowerJump(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        color jumpColor = color(226, 229, 50);
+        color jumpColor = color(46, 195, 209);
         super.setColor(jumpColor);
         super.setType(4);
     }

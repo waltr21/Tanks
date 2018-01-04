@@ -41,20 +41,30 @@ boolean holdingR, holdingL, playGame, displayIncreasing;
 float powerDisplayW = 30;
 boolean firstClient = false;
 DatagramChannel dc;
-String address = "127.0.0.1";
-int portNum = 8765;
+String address;
+int portNum;
 int speedCount = 0;
 int scene = 0;
-PImage titleText, controlImage, powerImage;
+PImage titleText, controlImage, powerImage, networkImage;
 
-
-
+/**
+ * Initial setUp for the game.
+ */
 public void setup(){
     
     
+
+    String[] networkStuff = loadStrings("Network.txt");
+
+    address = networkStuff[0].trim();
+    portNum = Integer.parseInt(networkStuff[1].trim());
+
+
+
     titleText  = loadImage("Title.png");
     controlImage = loadImage("Controls.png");
     powerImage = loadImage("PowerUps.png");
+    networkImage = loadImage("netInfo.png");
 
     buttons.add(new MenuButton(width/2, height/2, "Play"));
     buttons.add(new MenuButton(width/2, height/2 + 50, "Controls"));
@@ -82,6 +92,9 @@ public void setup(){
     myThread.start();
 }
 
+/**
+ * Set the game to its initial values.
+ */
 public void resetGame(){
     scene = 0;
     player = new Tank();
@@ -97,6 +110,9 @@ public void resetGame(){
     }
 }
 
+/**
+ * Draw function is broken up into four parts to choose whihc scene to draw.
+ */
 public void draw(){
     background(236,236,236);
     switch(scene){
@@ -112,9 +128,15 @@ public void draw(){
         case 3:
             drawPowers();
             break;
+        case 4:
+            drawNetwork();
+            break;
     }
 }
 
+/**
+ * Drawing of the main menu.
+ */
 public void drawMenu(){
     showButton();
     pushMatrix();
@@ -133,6 +155,9 @@ public void drawMenu(){
     player.showArm();
 }
 
+/**
+ * Show the buttons in the main menu.
+ */
 public void showButton(){
     for (MenuButton m : buttons){
         m.setHighlight(false);
@@ -144,10 +169,16 @@ public void showButton(){
     }
 }
 
+/**
+ * Show the image of the controls.
+ */
 public void drawControls(){
     image(controlImage, width/2 - 450, 0, 900, 900);
 }
 
+/**
+ * Show the image of the powers and display their animations/colors.
+ */
 public void drawPowers(){
     if (displayIncreasing)
         powerDisplayW += 0.5f;
@@ -156,22 +187,42 @@ public void drawPowers(){
     if (powerDisplayW > 60 || powerDisplayW < 30)
         displayIncreasing = !displayIncreasing;
 
+    //Health display
     fill(200, 0, 0);
     ellipse(800, 60, powerDisplayW, powerDisplayW);
+    //Shield display
     fill(0,0,200);
     ellipse(800, 220, powerDisplayW, powerDisplayW);
+    //Speed bullet display
     fill(214, 123, 12);
     ellipse(880, 410, powerDisplayW, powerDisplayW);
+    //Jump display
     fill(46, 195, 209);
     ellipse(805, 600, powerDisplayW, powerDisplayW);
+    //Tank speed display
     fill(11, 168, 11);
     ellipse(805, 760, powerDisplayW, powerDisplayW);
 
     image(powerImage, width/2 - 450, 0, 900, 900);
 }
 
+/**
+ * Show the network image.
+ */
+public void drawNetwork(){
+    image(networkImage, width/2-450, 0, 900, 900);
+    fill(0);
+    textSize(20);
+    //Display cuurent configs.
+    text(address, width/2 + 100, height-135);
+    text(portNum, width/2 + 100, height-100);
+}
+
+/**
+ * Draw the actual game.
+ */
 public void drawGame(){
-    //System.out.println(frameRate);
+    //Bound and move the player
     player.move(dir);
     player.gravity();
     player.bound();
@@ -220,12 +271,14 @@ public void drawGame(){
         System.out.println("Error in draw: " + e);
     }
 
+    //Go back to the main if player dies/
     if (reset){
         resetGame();
     }
 }
 
 public void showAndBoundBullets(){
+    //Loop through all of our bullets.
     for (int i = 0; i < bullets.size(); i++){
         boolean removed = false;
         //Check to see if it has hit a platform.
@@ -253,6 +306,10 @@ public void showAndBoundBullets(){
     }
 }
 
+/**
+ * Checks to see if the enemy bullets hit the current players tank.
+ * (Called each frame)
+ */
 public void checkHit(){
     for (EnemyBullet b : enemyBullets){
         if (b.getX() > player.getX() && b.getX() < player.getX() + player.getTankW()){
@@ -266,19 +323,30 @@ public void checkHit(){
     }
 }
 
+/**
+ * Display the power on the plat only if it is not null.
+ * (Called each frame)
+ */
 public void showPower(){
     if (power != null)
         power.show();
 }
 
+/**
+ * Check to see if we made connection with the power.
+ * (Called each frame)
+ */
 public void hitPower(){
     if (power != null){
         if (power.getX() > player.getX() && power.getX() < player.getX() + player.getTankW()){
             if (power.getY() > player.getY() && power.getY() < player.getY() + player.getTankH()){
+                //If we pick up health it is used immediately.
                 if (power.getType() == 0)
                     power.usePower();
+                //Added power to the players inventory.
                 else
                     player.givePower(power);
+                //Send a packet that we have taken the power up.
                 try{
                     ByteBuffer powerBuff = ByteBuffer.wrap("0".getBytes());
                     dc.send(powerBuff, new InetSocketAddress(address, portNum));
@@ -286,12 +354,17 @@ public void hitPower(){
                 catch(Exception e){
                     System.out.println("Exception in hitPower: " + e);
                 }
+                //Reset the power.
                 power = null;
             }
         }
     }
 }
 
+/**
+ * Creates a new power object to display depending on the type we recieve.
+ * @param int type number to represent which type of powerup to create.
+ */
 public void setPower(int type){
     if (type == 0)
         power = new PowerHealth(plats.getPlats().get(0), player, bar);
@@ -308,6 +381,9 @@ public void setPower(int type){
         System.out.println("Inavlid type");
 }
 
+/**
+ * Bound the tank to the playforms.
+ */
 public void landPlats(){
     for (Platform p : plats.getPlats()){
         //Temp floats for important points on the tank.
@@ -328,6 +404,9 @@ public void landPlats(){
     }
 }
 
+/**
+ * Show all of the power ups the user has in their inventory.
+ */
 public void showPowerList(){
     int startX = width - 30;
     int startY = 30;
@@ -339,12 +418,20 @@ public void showPowerList(){
     }
 }
 
+/**
+ * Show all of the enemy bullets.
+ */
 public void showEnemyBullets(){
     for (EnemyBullet b : enemyBullets){
         b.showBullet();
     }
 }
 
+/**
+ * Calculate the angle at which the player arm should be rotated.
+ * @return a float between 0 and 2 PI (angle in radians of how the arm should be
+ *  rotated)
+ */
 public float calculateArmAngle(){
     //Make a right triangle with the mouse and tank pos.
     float opp = (mouseY - player.getArmY());
@@ -363,6 +450,11 @@ public float calculateArmAngle(){
     return newAngle;
 }
 
+/**
+ * Separate thread for recieving packets.
+ * (We don't call this in the same thread because packet delay could cause the
+ * framerate to drop below 60)
+ */
 public void runThread(){
     try{
         System.out.println("Thread created.");
@@ -373,16 +465,22 @@ public void runThread(){
             message = message.trim();
             String[] coordinates = message.split(",");
 
+            //Have we recieved a packet telling us to control the
+            //plat form movement?
             if (coordinates[0].equals("F")){
                 firstClient = true;
                 plats.getPlats().get(0).setMove(true);
             }
+            //Have we recieved a packet telling us the powerup has been taken by
+            //the other player.
             else if (coordinates[0].equals("0")){
                 power = null;
             }
+            //Have we recieved a packet telling us a new powerup should be generated?
             else if(coordinates[0].equals("1")){
                 setPower(Integer.parseInt(coordinates[1]));
             }
+            //We have recieved a normal packet.
             else{
 
                 /*
@@ -433,6 +531,9 @@ public void runThread(){
     }
 }
 
+/**
+ * Key listeners
+ */
 public void keyReleased(){
     if (keyCode == RIGHT || key == 'd' || key == 'D')
         holdingR = false;
@@ -445,6 +546,9 @@ public void keyReleased(){
         dir = 0;
 }
 
+/**
+ * Key listeners
+ */
 public void keyPressed(){
     //Move the player left and right.
     if (keyCode == RIGHT || key == 'd' || key == 'D'){
@@ -469,7 +573,8 @@ public void keyPressed(){
             if (player.isFastBullet())
                 speedCount++;
 
-            //Calculate the x and y coordinates of the bullet before
+            //Calculate the x and y coordinates of the bullet to be displayed at
+            //the end of the arm.
             float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
             float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
 
@@ -479,30 +584,43 @@ public void keyPressed(){
                 bullets.add(new Bullet(newX, newY, recentAngle, false));
         }
     }
-    if (keyCode == ENTER){
+    if (keyCode == ENTER || keyCode == TAB){
         player.usePower();
     }
 }
 
+/**
+ * Click listener.
+ */
 public void mouseClicked(){
     if (scene == 0){
+        //Have we clicked on the play button?
         if (mouseX > buttons.get(0).getX() && mouseX < buttons.get(0).getX() + buttons.get(0).getW()){
             if (mouseY > buttons.get(0).getY() && mouseY < buttons.get(0).getY() + buttons.get(0).getH())
                 scene = 1;
         }
+        //Have we clicked on the control button?
         if (mouseX > buttons.get(1).getX() && mouseX < buttons.get(1).getX() + buttons.get(1).getW()){
             if (mouseY > buttons.get(1).getY() && mouseY < buttons.get(1).getY() + buttons.get(1).getH())
                 scene = 2;
         }
+        //Have we clicked on the powerup button?
         if (mouseX > buttons.get(2).getX() && mouseX < buttons.get(2).getX() + buttons.get(2).getW()){
             if (mouseY > buttons.get(2).getY() && mouseY < buttons.get(2).getY() + buttons.get(2).getH())
                 scene = 3;
         }
+        //Have we clicked on the network button?
+        if (mouseX > buttons.get(3).getX() && mouseX < buttons.get(3).getX() + buttons.get(3).getW()){
+            if (mouseY > buttons.get(3).getY() && mouseY < buttons.get(3).getY() + buttons.get(3).getH())
+                scene = 4;
+        }
     }
-    else if (scene == 2 || scene == 3){
+    //Reset the scene to exit to the main.
+    else if (scene == 2 || scene == 3 || scene == 4){
         scene = 0;
     }
 
+    //Same logic to represent the bullet being shot.
     else{
         if (bullets.size() < 3){
             if (bullets.size() < 3){
@@ -513,10 +631,11 @@ public void mouseClicked(){
                 if (player.isFastBullet())
                     speedCount++;
             }
-
-            //Calculate the x and y coordinates of the bullet before
+            //Calculate the x and y coordinates of the bullet to be displayed at
+            //the end of the arm.
             float newX =  (player.getArmW() * cos(recentAngle)) + player.getArmX();
             float newY = (player.getArmW() * sin(recentAngle)) + player.getArmY();
+
             if (player.isFastBullet())
                 bullets.add(new Bullet(newX, newY, recentAngle, true));
             else
@@ -936,9 +1055,9 @@ class PowerHealth extends Power{
     }
 
     public void usePower(){
-        int tempHealth = super.getTank().getHealth() + 30;
+        int tempHealth = super.getTank().getHealth() + 3;
         super.getTank().setHealth(tempHealth);
-        super.getBar().increaseSize(30);
+        super.getBar().increaseSize(3);
     }
 }
 
@@ -972,7 +1091,7 @@ class PowerShield extends Power{
 class PowerSpeed extends Power{
     public PowerSpeed(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        int speedColor = color(0, 200, 0);
+        int speedColor = color(11, 168, 11);
         super.setColor(speedColor);
         super.setType(3);
     }
@@ -985,7 +1104,7 @@ class PowerSpeed extends Power{
 class PowerJump extends Power{
     public PowerJump(Platform mid, Tank p, HealthBar h){
         super(mid, p, h);
-        int jumpColor = color(226, 229, 50);
+        int jumpColor = color(46, 195, 209);
         super.setColor(jumpColor);
         super.setType(4);
     }
