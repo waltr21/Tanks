@@ -6,10 +6,11 @@ Tanks is a mini online battle with your friend of choice. The objective is to ki
 ### How it Works
 Information on where your opponent is in relative to the screen is sent over a network using UDP packets. Positions of the enemy are
 sent every frame for real time play.
-The game runs at a smooth 60 FPS, and is powered by processing.
+The game runs at a smooth 60 FPS, and is powered by the processing environment.
 
 ### Download
 Downloads are soon to come for Mac, Windows, and linux. (Game is close to being finished)
+If you have the processing environment already downloaded, feel free to clone the code and start playing!
 
 
 
