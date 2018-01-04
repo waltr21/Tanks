@@ -251,6 +251,14 @@ public void drawGame(){
 
     //Go back to the main if player dies/
     if (reset){
+        //Send death packet so the players health resets.
+        try{
+            ByteBuffer buff = ByteBuffer.wrap("D".getBytes());
+            dc.send(buff, new InetSocketAddress(address, portNum));
+        }
+        catch(Exception e){
+            System.out.println("Error in the sendDeath packet: " + e);
+        }
         resetGame();
     }
 }
@@ -448,6 +456,13 @@ public void runThread(){
             if (coordinates[0].equals("F")){
                 firstClient = true;
                 plats.getPlats().get(0).setMove(true);
+            }
+            //Have we recieved a death packet?
+            else if(coordinates[0].equals("D")){
+                power = null;
+                player.setHealth(10);
+                bar.increaseSize(10);
+                player.clearPowers();
             }
             //Have we recieved a packet telling us the powerup has been taken by
             //the other player.

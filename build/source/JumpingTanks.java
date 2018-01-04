@@ -273,6 +273,14 @@ public void drawGame(){
 
     //Go back to the main if player dies/
     if (reset){
+        //Send death packet so the players health resets.
+        try{
+            ByteBuffer buff = ByteBuffer.wrap("D".getBytes());
+            dc.send(buff, new InetSocketAddress(address, portNum));
+        }
+        catch(Exception e){
+            System.out.println("Error in the sendDeath packet: " + e);
+        }
         resetGame();
     }
 }
@@ -470,6 +478,13 @@ public void runThread(){
             if (coordinates[0].equals("F")){
                 firstClient = true;
                 plats.getPlats().get(0).setMove(true);
+            }
+            //Have we recieved a death packet?
+            else if(coordinates[0].equals("D")){
+                power = null;
+                player.setHealth(10);
+                bar.increaseSize(10);
+                player.clearPowers();
             }
             //Have we recieved a packet telling us the powerup has been taken by
             //the other player.
@@ -1144,11 +1159,17 @@ public class Tank{
     private boolean speed = false;
     //Boolean for the shield of the tank.
     private boolean shield = false;
+    //Boolean for the speed of the tank
     private boolean tankFast = false;
+    //Number of hits the shield has taken
     private int shieldCount = 0;
+    //Time stamp for when the speed power was used
     private int speedTimeStamp = 0;
+    //Max amount of time allowed for a power to be used
     private int maxTime = 20000;
+    //Max amount of jumps for the player
     private int maxJump = 2;
+    //Time stamp for when the jump power was used.
     private int jumpTimeStamp = 0;
     //List to hold the power ups.
     private ArrayList<Power> powerUps = new ArrayList<Power>();
@@ -1203,6 +1224,10 @@ public class Tank{
 
     public int getTankW(){
         return bodyW;
+    }
+
+    public void clearPowers(){
+        powerUps.clear();
     }
 
     public boolean isFastBullet(){
