@@ -14,7 +14,7 @@ public class Tank{
     //Height of the body of the tank.
     private int bodyH = 30;
     //Force of gravity in the game.
-    private float gravity = 0.4;
+    private float gravity = 0.8;
     //Variable to keep track of the velocity in the game.
     private float velocity = 0;
     //Count to limit the jumps to one.
@@ -189,7 +189,7 @@ public class Tank{
 
     public void jump(){
         if (count < maxJump)
-            velocity -= 10;
+            velocity = -20.5;
         count++;
     }
 

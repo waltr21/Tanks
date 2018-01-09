@@ -37,8 +37,6 @@ void setup(){
     address = networkStuff[0].trim();
     portNum = Integer.parseInt(networkStuff[1].trim());
 
-
-
     titleText  = loadImage("Title.png");
     controlImage = loadImage("Controls.png");
     powerImage = loadImage("PowerUps.png");
@@ -215,12 +213,12 @@ public void drawGame(){
     plats.showPlatforms();
     showPower();
     showAndBoundBullets();
+    landPlats();
     showEnemyBullets();
     enemy.showBody();
     player.showBody();
     player.showArm();
     checkHit();
-    landPlats();
     hitPower();
 
     boolean reset = false;

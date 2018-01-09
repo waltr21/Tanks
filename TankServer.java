@@ -75,7 +75,6 @@ public class TankServer{
                     }
                 }
                 boolean changed = false;
-                int newType = r.nextInt(5);
 
                 //Send the packets to the clients.
                 for (SocketAddress addr : clients){
@@ -85,9 +84,10 @@ public class TankServer{
                         //System.out.println("Packet sent: " + addr);
                     }
                     //Send a power up every x seconds.
-                    if (System.currentTimeMillis() - pastTime > waitTime
-                        ){
+                    if (System.currentTimeMillis() - pastTime > waitTime){
                         changed = true;
+                        waitTime = r.nextInt(15000) + 15000;
+                        int newType = r.nextInt(5);
                         String tempPow = "1," + newType;
                         ByteBuffer powerBuff = ByteBuffer.wrap(tempPow.getBytes());
                         d1.send(powerBuff, addr);

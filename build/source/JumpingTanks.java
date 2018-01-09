@@ -59,8 +59,6 @@ public void setup(){
     address = networkStuff[0].trim();
     portNum = Integer.parseInt(networkStuff[1].trim());
 
-
-
     titleText  = loadImage("Title.png");
     controlImage = loadImage("Controls.png");
     powerImage = loadImage("PowerUps.png");
@@ -237,12 +235,12 @@ public void drawGame(){
     plats.showPlatforms();
     showPower();
     showAndBoundBullets();
+    landPlats();
     showEnemyBullets();
     enemy.showBody();
     player.showBody();
     player.showArm();
     checkHit();
-    landPlats();
     hitPower();
 
     boolean reset = false;
@@ -1144,7 +1142,7 @@ public class Tank{
     //Height of the body of the tank.
     private int bodyH = 30;
     //Force of gravity in the game.
-    private float gravity = 0.4f;
+    private float gravity = 0.8f;
     //Variable to keep track of the velocity in the game.
     private float velocity = 0;
     //Count to limit the jumps to one.
@@ -1319,7 +1317,7 @@ public class Tank{
 
     public void jump(){
         if (count < maxJump)
-            velocity -= 10;
+            velocity = -20.5f;
         count++;
     }
 
@@ -1378,7 +1376,7 @@ public class Tank{
 
     }
 }
-    public void settings() {  size(1300,900, P2D);  noSmooth(); }
+    public void settings() {  size(1300,900);  noSmooth(); }
     static public void main(String[] passedArgs) {
         String[] appletArgs = new String[] { "JumpingTanks" };
         if (passedArgs != null) {
